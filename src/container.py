@@ -293,7 +293,7 @@ IP=%s
             return [False, status]
         if status == "running":
             c = lxc.Container(lxc_name)
-             pid = c.init_pid  
+            pid = c.init_pid  
             path = "/var/run/netns/%s" % pid  
             if os.path.isfile(path):  
                 os.remove(path)  
