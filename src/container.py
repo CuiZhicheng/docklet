@@ -123,7 +123,6 @@ COOKIE_NAME=%s
 BASE_URL=%s
 HUB_PREFIX=%s
 HUB_API_URL=%s
-IP=%s
 """ % (username, 10000, cookiename, '/'+ proxy_server_ip +'/go/'+username+'/'+clustername, '/jupyter',
         authurl)
             config.write(jconfigs)
