@@ -623,6 +623,7 @@ class VclusterMgr(object):
             if not status:  
                 logger.info("update user % s network failed: %s" % (username, result))  
                 return [False, result]  
+            container['ip'] = ip
             logger.info("update user %s network with pid %s, ip %s, gateway %s success" % (username, pid, ip,gateway))  
   
             worker.start_services(container['containername'])  
@@ -631,7 +632,7 @@ class VclusterMgr(object):
             worker.recover_usernet(portname, uid, info['proxy_server_ip'], container['host']==info['proxy_server_ip'])  
         info['status']='running'  
         info['start_time']=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  
-        self.write_clusterinfo(info,clustername,username)  
+        self.write_clusterinfo(info, clustername, username)  
           
         [status, info] = self.get_clusterinfo(clustername, username)  
  
