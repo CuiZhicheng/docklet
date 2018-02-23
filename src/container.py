@@ -56,7 +56,7 @@ class Container(object):
                 content = content.replace("%ROOTFS%",rootfs)
                 content = content.replace("%HOSTNAME%",hostname)
                 # content = content.replace("%IP%",ip)
-                content = content.replace("%GATEWAY%",gateway)
+                # content = content.replace("%GATEWAY%",gateway)
                 content = content.replace("%CONTAINER_MEMORY%",str(memory))
                 content = content.replace("%CONTAINER_CPU%",str(cpu))
                 content = content.replace("%FS_PREFIX%",self.fspath)
@@ -170,8 +170,8 @@ HUB_API_URL=%s
 
     def update_container(self, lxc_name, clustername, clusterid, hostname, ip): 
         logger.info("update container:%s with clustername:%s, clusterid:%s, hostname:%s, ip:%s" % (lxc_name, clustername, hostname, clusterid, ip)) 
-        c = lxc.Container(lxc_name) 
-        pid = c.init_pid 
+        c = lxc.Container(lxc_name)
+        pid = c.init_pid
         username = lxc_name.split("-")[0] 
         self.update_netns(lxc_name, pid) 
         self.update_user_hosts(clustername, clusterid, username, hostname, ip) 
@@ -185,7 +185,7 @@ HUB_API_URL=%s
         src = "/proc/%s/ns/net" % pid 
         dst = "/var/run/netns/%s" % pid 
         os.symlink(src, dst) 
-        logger.info("container %s netns with pid % success" % (lxc_name, pid)) 
+        logger.info("container %s netns with pid %s success" % (lxc_name, pid)) 
 
 
     def update_user_hosts(self, clustername, clusterid, username, hostname, ip): 
