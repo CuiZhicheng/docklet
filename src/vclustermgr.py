@@ -113,6 +113,7 @@ class VclusterMgr(object):
         groupname = json.loads(user_info)["data"]["group"]
         groupquota = json.loads(user_info)["data"]["groupinfo"]
         uid = json.loads(user_info)["data"]["id"]
+        network = setting["network"]
         if (len(workers) == 0):
             logger.warning ("no workers to start containers, start cluster failed")
             return [False, "no workers are running"]
@@ -122,7 +123,7 @@ class VclusterMgr(object):
             cidr = 32 - math.ceil(math.log(ipnum,2))
             self.networkmgr.add_user(username, cidr=cidr, isshared = True if str(groupname) == "fundation" else False)
             if self.distributedgw == "False":
-                [success,message] = self.networkmgr.setup_usrgw(groupquota['input_rate_limit'], groupquota['output_rate_limit'], username, uid, self.nodemgr)
+                [success,message] = self.networkmgr.setup_usrgw(groupquota['input_rate_limit'], groupquota['output_rate_limit'], username, uid, self.nodemgr, network)
                 if not success:
                     return [False, message]
         elif not self.networkmgr.has_usrgw(username):
@@ -132,7 +133,7 @@ class VclusterMgr(object):
         gateway = self.networkmgr.get_usergw(username)
         #vlanid = self.networkmgr.get_uservlanid(username)
         logger.info ("create cluster with gateway : %s" % gateway)
-        self.networkmgr.printpools()
+        # self.networkmgr.printpools()
         # if not status:
         #     logger.info ("create cluster failed: %s" % result)
         #     return [False, result]
@@ -148,7 +149,7 @@ class VclusterMgr(object):
             workerip = workers[random.randint(0, len(workers)-1)]
             oneworker = xmlrpc.client.ServerProxy("http://%s:%s" % (workerip, env.getenv("WORKER_PORT")))
             if self.distributedgw == "True" and i == 0 and not self.networkmgr.has_usrgw(username):
-                [success,message] = self.networkmgr.setup_usrgw(groupquota['input_rate_limit'], groupquota['output_rate_limit'], username, uid, self.nodemgr, workerip)
+                [success,message] = self.networkmgr.setup_usrgw(groupquota['input_rate_limit'], groupquota['output_rate_limit'], username, uid, self.nodemgr, network, workerip)
                 if not success:
                     return [False, message]
             if i == 0:
@@ -163,7 +164,7 @@ class VclusterMgr(object):
             # logger.info ("create container with : name-%s, username-%s, clustername-%s, clusterid-%s, hostname-%s, ip-%s, gateway-%s, image-%s" % (lxc_name, username, clustername, str(clusterid), hostname, ips[i], gateway, image_json))
             # [success,message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, json.dumps(setting) , clustername, str(clusterid), str(i), hostname, ips[i], gateway, image_json)
             logger.info ("create container with : name-%s, username-%s, clustername-%s, clusterid-%s, hostname-%s, gateway-%s, image-%s" % (lxc_name, username, clustername, str(clusterid), hostname, gateway, image_json))
-            [success,message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, json.dumps(setting) , clustername, str(clusterid), str(i), hostname, gateway, image_json)
+            [success,message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, json.dumps(setting), clustername, str(clusterid), str(i), hostname, gateway, image_json)
             if success is False:
                 # self.networkmgr.release_userips(username, ips[i])
                 logger.info("container create failed, so vcluster create failed")
@@ -177,7 +178,7 @@ class VclusterMgr(object):
         hostfile.close()
         clusterfile = open(clusterpath, 'w')
         proxy_url = env.getenv("PORTAL_URL") +"/"+ proxy_public_ip +"/_web/" + username + "/" + clustername
-        info = {'clusterid':clusterid, 'status':'stopped', 'size':clustersize, 'containers':containers, 'nextcid': clustersize, 'create_time':datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'start_time':"------"}
+        info = {'clusterid':clusterid, 'status':'stopped', 'size':clustersize, 'network':setting["network"],'containers':containers, 'nextcid': clustersize, 'create_time':datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'start_time':"------"}
         info['proxy_url'] = proxy_url
         info['proxy_server_ip'] = proxy_server_ip
         info['proxy_public_ip'] = proxy_public_ip
@@ -619,7 +620,7 @@ class VclusterMgr(object):
             pid = result 
 
             logger.info("update user %s network" % username)  
-            [status, result] = worker.update_user_network(username, pid, ip, gateway)  
+            [status, result] = worker.update_user_network(username, pid, ip, gateway, info["network"])
             if not status:  
                 logger.info("update user % s network failed: %s" % (username, result))  
                 return [False, result]  

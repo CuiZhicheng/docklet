@@ -33,6 +33,7 @@ class Container(object):
             cpu = int(setting['cpu']) * 100000
             memory = setting["memory"]
             disk = setting["disk"]
+            network = setting["network"]
             image = json.loads(image)
             status = self.imgmgr.prepareFS(username,image,lxc_name,disk)
             if not status:
@@ -69,7 +70,12 @@ class Container(object):
                 content = content.replace("%VETHPAIR%", str(clusterid)+'-'+str(containerid))
                 return content
 
-            conffile = open(self.confpath+"/container.conf", 'r')
+            conffilepath = self.confpath
+            if network == 'ovs':
+                conffilepath = conffilepath + "/cni-container.conf"
+            else:
+                conffilepath = conffilepath + "contaienr.conf"
+            conffile = open(conffilepath, 'r')
             conftext = conffile.read()
             conffile.close()
             conftext = config_prepare(conftext)

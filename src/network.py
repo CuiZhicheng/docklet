@@ -453,7 +453,7 @@ class NetworkMgr(object):
         self.load_usrgw(username)
         return username in self.usrgws.keys()
 
-    def setup_usrgw(self, input_rate_limit, output_rate_limit, username, uid, nodemgr, workerip=None):
+    def setup_usrgw(self, input_rate_limit, output_rate_limit, username, uid, nodemgr, network="ovs", workerip=None):
         if not self.has_user(username):
             return [False,"user doesn't exist."]
         self.load_usrgw(username)
@@ -461,6 +461,8 @@ class NetworkMgr(object):
             return [False,"user's gateway has been set up."]
         self.load_user(username)
         usrpools = self.users[username]
+        if (network != "ovs"):
+            return [True, "cni set up gateway success"]
         if(workerip is not None):
             ip = workerip
             worker = nodemgr.ip_to_rpc(workerip)

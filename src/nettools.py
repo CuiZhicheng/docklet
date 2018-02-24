@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import subprocess, env, threading
+import subprocess, env, threading, os, yaml
 from log import logger
 
 class ipcontrol(object):
@@ -113,7 +113,7 @@ class ipcontrol(object):
     def netns_add_addr(pid, ip, linkname = 'eth0'):
         try:
             subprocess.run(['ip', 'netns', 'exec', str(pid), 'ifconfig', str(linkname), str(ip), 'up'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False, check=True)
-            return [True, "netns %s add address succes : %s" % (pid, ip)]
+            return [True, "netns %s add address success : %s" % (pid, ip)]
         except subprocess.CalledProcessError as suberror:
             return [False, "netns %s add address failed : %s" % (pid, suberror.stdout.decode('utf-8'))]
 
@@ -370,15 +370,53 @@ class netcontrol(object):
         ovscontrol.add_port("docklet-br-"+str(uid), portname)
 
     @staticmethod
-    def update_user_network(username, pid, ip, gateway):
-        [status, result] = ipcontrol.netns_add_addr(pid, ip)
-        if not status:
-            return [False, result]
-        [status, route_result] = netcontrol.netns_add_route(pid, gateway)
-        if not status:
-            return [False, route_result]
-        resutl = result + route_result
-        return [True, result]
+    def update_user_network(username, pid, ip, gateway, network):
+        if (network == "ovs"):
+            [status, result] = ipcontrol.netns_add_addr(pid, ip)
+            if not status:
+                return [False, result]
+            [status, route_result] = netcontrol.netns_add_route(pid, gateway)
+            if not status:
+                return [False, route_result]
+            result = result + route_result
+            return [True, result]
+        else:
+            [status, result] = netcontrol.check_network_conf(username, network)
+            if not status:
+                return [False, result]
+            [status, result] = netcontrol.setup_cni_network(username, ip)
+            return [status, result]
+
+    @staticmethod
+    def check_network_conf(username, network):
+        NetworkConfPath = "/etc/cni/net.d/%s.conf" % username
+        StandardNetworkConf = """{'type': '%s', 'etcd_endpoints': '%s', 'log_level': 'DEBUG', 'name': '%s', 'ipam': {'type': 'calico-ipam'}}""" % (network, env.getenv("ETCD"), network)
+        StandardNetworkYaml = """
+{
+    "name": "%s",
+    "type": "%s",
+    "etcd_endpoints": "%s",
+    "ipam": {
+        "type": "calico-ipam"
+    }
+}""" % (username, network, os.getenv("ETCD"))
+
+        if (os.path.exists(NetworkConfPath)):
+            NetworkConfFile = open(NetworkConfPath, "r")
+            NetworkConf = yaml.load(NetworkConfFile.read())
+            NetworkConfFile.close()
+            if (NetworkConf == StandardNetworkConf):
+                return [True, "check network conf success"]
+
+        NetworkConfFile = open(NetworkConfPath, "w")
+        NetworkConfFile.write(StandardNetworkYaml)
+        NetworkConfFile.close()
+        return [True, "set up network conf success"]
+
+    @staticmethod
+    def setup_cni_network(username):
+        # ret = os.system("sh /home/pkusei/calico-for-lxc/lxc-attach-calico.sh %s %s" % (container_name, network_name))
+        pass
 
     @staticmethod
     def netns_add_route(pid, gateway):
