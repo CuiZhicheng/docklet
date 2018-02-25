@@ -505,18 +505,19 @@ class NetworkMgr(object):
         self.user_locks.release()
         return [True, 'add user success']
 
-    def del_usrgwbr(self, username, uid, nodemgr):
+    def del_usrgwbr(self, username, uid, nodemgr, network):
         if username not in self.usrgws.keys():
             return [False, "user does't have gateway or user doesn't exist."]
         ip = self.usrgws[username]
         logger.info("Delete user %s(%s) gateway on %s" %(username, str(uid), ip))
-        if ip == self.masterip:
-            netcontrol.del_gw('docklet-br-'+str(uid), username)
-            netcontrol.del_bridge('docklet-br-'+str(uid))
-        else:
-            worker = nodemgr.ip_to_rpc(ip)
-            worker.del_gw('docklet-br-'+str(uid), username)
-            worker.del_bridge('docklet-br-'+str(uid))
+        if network == "ovs":
+            if ip == self.masterip:
+                netcontrol.del_gw('docklet-br-'+str(uid), username)
+                netcontrol.del_bridge('docklet-br-'+str(uid))
+            else:
+                worker = nodemgr.ip_to_rpc(ip)
+                worker.del_gw('docklet-br-'+str(uid), username)
+                worker.del_bridge('docklet-br-'+str(uid))
         del self.usrgws[username]
         self.etcd.delkey("network/usrgws/"+username)
         return [True, 'delete user\' gateway success']

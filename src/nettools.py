@@ -358,7 +358,9 @@ class netcontrol(object):
         return [True, "check gateway port %s" % gwport]
 
     @staticmethod
-    def recover_usernet(portname, uid, GatewayHost, isGatewayHost):
+    def recover_usernet(portname, uid, GatewayHost, isGatewayHost, network):
+        if network != "ovs":
+            return
         ovscontrol.add_bridge("docklet-br-"+str(uid))
         if not isGatewayHost:
             [success, ports] = ovscontrol.list_ports("docklet-br-"+str(uid))
@@ -370,27 +372,40 @@ class netcontrol(object):
         ovscontrol.add_port("docklet-br-"+str(uid), portname)
 
     @staticmethod
-    def update_user_network(username, pid, ip, gateway, network):
-        if (network == "ovs"):
+    def add_container_network(container_name, clustername, pid, ip, gateway, network):
+        namesplit = container_name.split('-')
+        username = namesplit[0]
+        if network == "ovs":
             [status, result] = ipcontrol.netns_add_addr(pid, ip)
             if not status:
-                return [False, result]
+                return [False, container_name + " " + result]
             [status, route_result] = netcontrol.netns_add_route(pid, gateway)
             if not status:
                 return [False, route_result]
             result = result + route_result
-            return [True, result]
+            return [True, container_name + " " + result]
         else:
-            [status, result] = netcontrol.check_network_conf(username, network)
+            [status, result] = netcontrol.add_user_network(username, clustername, network)
             if not status:
-                return [False, result]
-            [status, result] = netcontrol.setup_cni_network(username, ip)
-            return [status, result]
+                return [False, container_name + " " + result]
+            [status, result] = netcontrol.add_cni_network(username, clustername, pid, ip)
+            return [status, container_name + " " + result]
 
     @staticmethod
-    def check_network_conf(username, network):
-        NetworkConfPath = "/etc/cni/net.d/%s.conf" % username
-        StandardNetworkConf = """{'type': '%s', 'etcd_endpoints': '%s', 'log_level': 'DEBUG', 'name': '%s', 'ipam': {'type': 'calico-ipam'}}""" % (network, env.getenv("ETCD"), network)
+    def netns_add_route(pid, gateway):
+        try:
+            subprocess.run(['ip', 'netns', 'exec', str(pid), 'route', 'add', 'default', 'gw', str(gateway)],
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False, check=True)
+            return [True, "netns %s add route success : %s" % (pid, gateway)]
+        except subprocess.CalledProcessError as suberror:
+            return [False, "netns %s add route failed : %s" % (pid, suberror.stdout.decode('utf-8'))]
+
+    @staticmethod
+    def add_user_network(username, clustername, network):
+        NetworkName = username + "-" + clustername
+        NetworkConfPath = "/etc/cni/net.d/%s.conf" % NetworkName
+        StandardNetworkConf = """{'type': '%s', 'etcd_endpoints': '%s', 'name': '%s', 'ipam': {'type': 'calico-ipam'}}""" \
+                              % (network, env.getenv("ETCD"), NetworkName)
         StandardNetworkYaml = """
 {
     "name": "%s",
@@ -399,13 +414,13 @@ class netcontrol(object):
     "ipam": {
         "type": "calico-ipam"
     }
-}""" % (username, network, os.getenv("ETCD"))
+}""" % (NetworkName, network, os.getenv("ETCD"))
 
         if (os.path.exists(NetworkConfPath)):
             NetworkConfFile = open(NetworkConfPath, "r")
             NetworkConf = yaml.load(NetworkConfFile.read())
             NetworkConfFile.close()
-            if (NetworkConf == StandardNetworkConf):
+            if NetworkConf == StandardNetworkConf:
                 return [True, "check network conf success"]
 
         NetworkConfFile = open(NetworkConfPath, "w")
@@ -414,17 +429,37 @@ class netcontrol(object):
         return [True, "set up network conf success"]
 
     @staticmethod
-    def setup_cni_network(username):
-        # ret = os.system("sh /home/pkusei/calico-for-lxc/lxc-attach-calico.sh %s %s" % (container_name, network_name))
-        pass
+    def add_cni_network(username, clustername, pid, ip):
+        NetworkName = username + "-" + clustername
+        ret = os.system("CNI_ARGS='IP=%s' CNI_PATH=/opt/bin /opt/bin/cnitool add %s /var/run/netns/%s" % (ip, NetworkName, pid))
+        if ret == 0:
+            return [True, "add up cni network success"]
+        else:
+            return [False, "add up cni network failed"]
 
     @staticmethod
-    def netns_add_route(pid, gateway):
-        try:
-            subprocess.run(['ip', 'netns', 'exec', str(pid), 'route', 'add', 'default', 'gw', str(gateway)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False, check=True)
-            return [True, "netns %s add route success : %s" % (pid, gateway)]
-        except subprocess.CalledProcessError as suberror:
-            return [False, "netns %s add route failed : %s" % (pid, suberror.stdout.decode('utf-8'))]
+    def del_container_network(container_name, clustername, pid, network):
+        if network == "ovs":
+            return [True, 'del ovs network']
+        namesplit = container_name.split('-')
+        username = namesplit[0]
+        NetworkName = username + "-" + clustername
+        ret = os.system(
+            "CNI_PATH=/opt/bin /opt/bin/cnitool del %s /var/run/netns/%s" % (NetworkName, pid))
+        if ret == 0:
+            return [True, "del cni network success"]
+        else:
+            return [False, "del cni network failed"]
+
+    @staticmethod
+    def del_user_network(username, clustername):
+        NetworkName = username + "-" + clustername
+        NetworkConfPath = "/etc/cni/net.d/%s.conf" % NetworkName
+        if not os.path.exists(NetworkConfPath):
+            return [True, 'del user:%s network:%s success' % (username, NetworkName)]
+        else:
+            os.remove(NetworkConfPath)
+            return [True, 'del user:%s network:%s success' % (username, NetworkName)]
 
 free_ports = [False]*65536
 allocated_ports = {}
