@@ -179,7 +179,7 @@ HUB_API_URL=%s
         c = lxc.Container(lxc_name)
         pid = c.init_pid
         username = lxc_name.split("-")[0] 
-        self.update_netns(lxc_name, pid) 
+        # self.update_netns(lxc_name, pid)
         self.update_user_hosts(clustername, clusterid, username, hostname, ip) 
         self.update_jupyter_config(lxc_name, ip) 
         return [True, pid]

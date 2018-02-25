@@ -375,6 +375,9 @@ class netcontrol(object):
     def add_container_network(container_name, clustername, pid, ip, gateway, network):
         namesplit = container_name.split('-')
         username = namesplit[0]
+
+        netcontrol.netns_add_link(pid)
+
         if network == "ovs":
             [status, result] = ipcontrol.netns_add_addr(pid, ip)
             if not status:
@@ -390,6 +393,16 @@ class netcontrol(object):
                 return [False, container_name + " " + result]
             [status, result] = netcontrol.add_cni_network(username, clustername, pid, ip)
             return [status, container_name + " " + result]
+
+    @staticmethod
+    def netns_add_link(pid):
+        # logger.info("update container %s netns" % lxc_name)
+        path = "/var/run/netns/"
+        os.makedirs(path, exist_ok=True)
+        src = "/proc/%s/ns/net" % pid
+        dst = "/var/run/netns/%s" % pid
+        os.symlink(src, dst)
+        # logger.info("container %s netns with pid %s success" % (lxc_name, pid))
 
     @staticmethod
     def netns_add_route(pid, gateway):

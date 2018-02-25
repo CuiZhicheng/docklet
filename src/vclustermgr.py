@@ -316,6 +316,7 @@ class VclusterMgr(object):
         proxy_server_ip = clusterinfo['proxy_server_ip']
         proxy_public_ip = clusterinfo['proxy_public_ip']
         uid = json.loads(user_info)["data"]["id"]
+        setting["network"] = clusterinfo['network']
         # [success, message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, json.dumps(setting), clustername, clusterid, str(cid), hostname, ip, gateway, image_json)
         [success, message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, json.dumps(setting), clustername, clusterid, str(cid), hostname, gateway, image_json)
         if success is False:
