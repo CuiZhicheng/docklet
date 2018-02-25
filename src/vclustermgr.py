@@ -113,7 +113,9 @@ class VclusterMgr(object):
         groupname = json.loads(user_info)["data"]["group"]
         groupquota = json.loads(user_info)["data"]["groupinfo"]
         uid = json.loads(user_info)["data"]["id"]
-        network = setting["network"]
+        # network = setting["network"]
+        network = "ovs"
+        setting["network"] = "ovs"
         if (len(workers) == 0):
             logger.warning ("no workers to start containers, start cluster failed")
             return [False, "no workers are running"]
@@ -231,7 +233,7 @@ class VclusterMgr(object):
                 ip = container['ip']
 
             gateway = self.networkmgr.get_usergw(username)
-            pid = worker.getPidByName(container['containername'])
+            [status, pid] = worker.getPidByName(container['containername'])
 
             logger.info("update user %s network" % username)
             [status, result] = worker.add_container_network(container['containername'], clustername, pid, ip, gateway,
@@ -375,9 +377,8 @@ class VclusterMgr(object):
                 worker = xmlrpc.client.ServerProxy("http://%s:%s" % (container['host'], env.getenv("WORKER_PORT")))
                 if worker is None:
                     return [False, "The worker can't be found or has been stopped."]
-
-                worker.del_container_network(containername, clustername,
-                                             worker.getPidByName(containername), info['network'])
+                [status, pid] = worker.getPidByName(containername)
+                worker.del_container_network(containername, clustername, pid, info['network'])
                 self.networkmgr.release_userips(username, container['ip'])
                 worker.stop_container(containername)
                 worker.delete_container(containername)

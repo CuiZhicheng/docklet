@@ -71,10 +71,10 @@ class Container(object):
                 return content
 
             conffilepath = self.confpath
-            if network == 'ovs':
+            if network != "ovs  ":
                 conffilepath = conffilepath + "/cni-container.conf"
             else:
-                conffilepath = conffilepath + "contaienr.conf"
+                conffilepath = conffilepath + "/container.conf"
             conffile = open(conffilepath, 'r')
             conftext = conffile.read()
             conffile.close()
