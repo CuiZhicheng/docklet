@@ -379,7 +379,7 @@ class netcontrol(object):
         username = namesplit[0]
 
         netcontrol.netns_add_link(pid)
-
+        logger.info("add link")
         if network == "ovs":
             [status, result] = ipcontrol.netns_add_addr(pid, ip)
             if not status:
@@ -392,9 +392,9 @@ class netcontrol(object):
         else:
             [status, result] = netcontrol.add_user_network(username, clustername, network)
             if not status:
-                return [False, container_name + " " + result]
+                return [False, container_name + " add user network failed for: " + result]
             [status, result] = netcontrol.add_cni_network(username, clustername, pid, ip)
-            return [status, container_name + " " + result]
+            return [status, container_name + " add cni network failed  for: " + result]
 
     @staticmethod
     def netns_add_link(pid):
