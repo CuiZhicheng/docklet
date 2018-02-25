@@ -208,7 +208,7 @@ class VclusterMgr(object):
         # after reboot, user gateway goes down and lose its configuration
         # so, check is necessary
         self.networkmgr.check_usergw(input_rate_limit, output_rate_limit, username, uid, self.nodemgr,
-                                     self.distributedgw == 'True', network)
+                                     network, self.distributedgw == 'True')
         # start containers
         for container in info['containers']:
             # set up gre from user's gateway host to container's host.
@@ -772,7 +772,7 @@ class VclusterMgr(object):
             return [False, "start cluster failed with setting proxy failed"]
         # need to check and recover gateway of this user
         self.networkmgr.check_usergw(input_rate_limit, output_rate_limit, username, uid, self.nodemgr,
-                                     self.distributedgw=='True', info['network'])
+                                     info['network'], self.distributedgw=='True')
         # recover containers of this cluster
         for container in info['containers']:
             # set up gre from user's gateway host to container's host.

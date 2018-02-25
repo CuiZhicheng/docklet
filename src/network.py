@@ -538,7 +538,7 @@ class NetworkMgr(object):
         self.user_locks.release()
         return [True, 'delete user success']
 
-    def check_usergw(self, input_rate_limit, output_rate_limit, username, uid, nodemgr, distributedgw=False, network):
+    def check_usergw(self, input_rate_limit, output_rate_limit, username, uid, nodemgr, network, distributedgw=False):
         logger.info("Check %s(%s) user gateway."%(username, str(uid)))
         if not self.has_user(username):
             return [False,"user doesn't exist."]
