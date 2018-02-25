@@ -429,7 +429,7 @@ class netcontrol(object):
     "ipam": {
         "type": "calico-ipam"
     }
-}""" % (NetworkName, network, os.getenv("ETCD"))
+}""" % (NetworkName, network, env.getenv("ETCD"))
 
         if (os.path.exists(NetworkConfPath)):
             NetworkConfFile = open(NetworkConfPath, "r")

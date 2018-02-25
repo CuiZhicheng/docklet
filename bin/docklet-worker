@@ -18,6 +18,7 @@ DOCKLET_WEB=$DOCKLET_HOME/web
 # working directory, default to /opt/docklet
 FS_PREFIX=/opt/docklet
 
+ETCD=localhost:2379
 # cluster net ip range,  default is 172.16.0.1/16
 CLUSTER_NET="172.16.0.1/16"
 #configurable-http-proxy public port, default is 8000
