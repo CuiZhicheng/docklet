@@ -249,7 +249,7 @@ class VclusterMgr(object):
             worker.start_services(container['containername'])
             namesplit = container['containername'].split('-')
             portname = namesplit[1] + '-' + namesplit[2]
-            worker.recover_usernet(portname, uid, info['proxy_server_ip'], container['host'] == info['proxy_server_ip'])
+            worker.recover_usernet(portname, uid, info['proxy_server_ip'], container['host'] == info['proxy_server_ip'], info["network"])
         info['status'] = 'running'
         info['start_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.write_clusterinfo(info, clustername, username)
