@@ -446,6 +446,8 @@ class netcontrol(object):
     @staticmethod
     def add_cni_network(username, clustername, pid, ip):
         NetworkName = username + "-" + clustername
+        ip = ip.split("/")[0]
+        logger.info("CNI_ARGS='IP=%s' CNI_PATH=/opt/bin /opt/bin/cnitool add %s /var/run/netns/%s" % (ip, NetworkName, pid))
         ret = os.system("CNI_ARGS='IP=%s' CNI_PATH=/opt/bin /opt/bin/cnitool add %s /var/run/netns/%s" % (ip, NetworkName, pid))
         if ret == 0:
             return [True, "add up cni network success"]
