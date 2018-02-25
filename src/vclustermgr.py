@@ -217,6 +217,7 @@ class VclusterMgr(object):
             worker.start_container(container['containername'])
 
             logger.info("acquire ip for container %s" % container['containername'])
+            logger.info(container)
             if not ('ip' in container):
                 [status, result] = self.networkmgr.acquire_userips_cidr(username)
                 if not status:
@@ -231,6 +232,7 @@ class VclusterMgr(object):
                     return [False, result]
             else:
                 ip = container['ip']
+            logger.info("container %s with ip %s" % (container['containername'], ip))
 
             gateway = self.networkmgr.get_usergw(username)
             [status, pid] = worker.getPidByName(container['containername'])
