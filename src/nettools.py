@@ -419,8 +419,9 @@ class netcontrol(object):
     def add_user_network(username, clustername, network):
         NetworkName = username + "-" + clustername
         NetworkConfPath = "/etc/cni/net.d/%s.conf" % NetworkName
+        etcd = "http://" + env.getenv("ETCD")
         StandardNetworkConf = """{'type': '%s', 'etcd_endpoints': '%s', 'name': '%s', 'ipam': {'type': 'calico-ipam'}}""" \
-                              % (network, env.getenv("ETCD"), NetworkName)
+                              % (network, etcd, NetworkName)
         StandardNetworkYaml = """
 {
     "name": "%s",
@@ -429,7 +430,7 @@ class netcontrol(object):
     "ipam": {
         "type": "calico-ipam"
     }
-}""" % (NetworkName, network, env.getenv("ETCD"))
+}""" % (NetworkName, network, etcd)
 
         if (os.path.exists(NetworkConfPath)):
             NetworkConfFile = open(NetworkConfPath, "r")
