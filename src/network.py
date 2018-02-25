@@ -453,7 +453,7 @@ class NetworkMgr(object):
         self.load_usrgw(username)
         return username in self.usrgws.keys()
 
-    def setup_usrgw(self, input_rate_limit, output_rate_limit, username, uid, nodemgr, network="ovs", workerip=None):
+    def setup_usrgw(self, input_rate_limit, output_rate_limit, username, uid, nodemgr, network, workerip=None):
         if not self.has_user(username):
             return [False,"user doesn't exist."]
         self.load_usrgw(username)
@@ -461,20 +461,18 @@ class NetworkMgr(object):
             return [False,"user's gateway has been set up."]
         self.load_user(username)
         usrpools = self.users[username]
-        if (network != "ovs"):
-            return [True, "cni set up gateway success"]
         if(workerip is not None):
             ip = workerip
             worker = nodemgr.ip_to_rpc(workerip)
             logger.info("setup gateway for %s with %s on %s" % (username, usrpools.get_gateway_cidr(), ip))
             self.usrgws[username] = ip
             self.dump_usrgw(username)
-            worker.setup_gw('docklet-br-'+str(uid), username, usrpools.get_gateway_cidr(), input_rate_limit, output_rate_limit)
+            worker.setup_gw('docklet-br-'+str(uid), username, usrpools.get_gateway_cidr(), input_rate_limit, output_rate_limit, network)
         else:
             logger.info("setup gateway for %s with %s on master" % (username, usrpools.get_gateway_cidr() ))
             self.usrgws[username] = self.masterip
             self.dump_usrgw(username)
-            netcontrol.setup_gw('docklet-br-'+str(uid), username, usrpools.get_gateway_cidr(), input_rate_limit, output_rate_limit)
+            netcontrol.setup_gw('docklet-br-'+str(uid), username, usrpools.get_gateway_cidr(), input_rate_limit, output_rate_limit, network)
         self.dump_user(username)
         del self.users[username]
         return [True, "set up gateway success"]

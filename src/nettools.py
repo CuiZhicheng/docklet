@@ -314,7 +314,9 @@ class netcontrol(object):
         return ovscontrol.port_exists(gwport)
 
     @staticmethod
-    def setup_gw(bridge, gwport, addr, input_rate_limit, output_rate_limit):
+    def setup_gw(bridge, gwport, addr, input_rate_limit, output_rate_limit, network):
+        if network != "ovs":
+            return [True, 0]
         [status, result] = ovscontrol.add_port_internal(bridge, gwport)
         if not status:
             return [status, result]
