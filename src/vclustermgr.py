@@ -202,11 +202,13 @@ class VclusterMgr(object):
         if not "proxy_server_ip" in info.keys():
             info['proxy_server_ip'] = self.addr
 
+        network = info['network']
+
         # check gateway for user
         # after reboot, user gateway goes down and lose its configuration
         # so, check is necessary
         self.networkmgr.check_usergw(input_rate_limit, output_rate_limit, username, uid, self.nodemgr,
-                                     self.distributedgw == 'True')
+                                     self.distributedgw == 'True', network)
         # start containers
         for container in info['containers']:
             # set up gre from user's gateway host to container's host.
@@ -239,7 +241,7 @@ class VclusterMgr(object):
 
             logger.info("update user %s network" % username)
             [status, result] = worker.add_container_network(container['containername'], clustername, pid, ip, gateway,
-                                                            info["network"])
+                                                            network)
             if not status:
                 logger.info("update container %s network failed: %s" % (container['containername'], result))
                 return [False, result]
@@ -249,7 +251,7 @@ class VclusterMgr(object):
             worker.start_services(container['containername'])
             namesplit = container['containername'].split('-')
             portname = namesplit[1] + '-' + namesplit[2]
-            worker.recover_usernet(portname, uid, info['proxy_server_ip'], container['host'] == info['proxy_server_ip'], info["network"])
+            worker.recover_usernet(portname, uid, info['proxy_server_ip'], container['host'] == info['proxy_server_ip'], network)
         info['status'] = 'running'
         info['start_time'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.write_clusterinfo(info, clustername, username)
@@ -769,7 +771,8 @@ class VclusterMgr(object):
         except:
             return [False, "start cluster failed with setting proxy failed"]
         # need to check and recover gateway of this user
-        self.networkmgr.check_usergw(input_rate_limit, output_rate_limit, username, uid, self.nodemgr,self.distributedgw=='True')
+        self.networkmgr.check_usergw(input_rate_limit, output_rate_limit, username, uid, self.nodemgr,
+                                     self.distributedgw=='True', info['network'])
         # recover containers of this cluster
         for container in info['containers']:
             # set up gre from user's gateway host to container's host.

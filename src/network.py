@@ -538,7 +538,7 @@ class NetworkMgr(object):
         self.user_locks.release()
         return [True, 'delete user success']
 
-    def check_usergw(self, input_rate_limit, output_rate_limit, username, uid, nodemgr, distributedgw=False):
+    def check_usergw(self, input_rate_limit, output_rate_limit, username, uid, nodemgr, distributedgw=False, network):
         logger.info("Check %s(%s) user gateway."%(username, str(uid)))
         if not self.has_user(username):
             return [False,"user doesn't exist."]
@@ -546,6 +546,8 @@ class NetworkMgr(object):
         if username not in self.usrgws.keys():
             self.usrgws[username] = self.masterip
             self.dump_usrgw(username)
+        if network != "ovs":
+            return [True, 'check gw ok']
         ip = self.usrgws[username]
         self.load_user(username)
         if not distributedgw:
@@ -553,10 +555,12 @@ class NetworkMgr(object):
                 self.del_usrgwbr(username,uid,nodemgr)
                 self.usrgws[username] = self.masterip
                 self.dump_usrgw(username)
-            netcontrol.check_gw('docklet-br-'+str(uid), username, uid, self.users[username].get_gateway_cidr(), input_rate_limit, output_rate_limit)
+            netcontrol.check_gw('docklet-br-'+str(uid), username, uid, self.users[username].get_gateway_cidr(),
+                                input_rate_limit, output_rate_limit, network)
         else:
             worker = nodemgr.ip_to_rpc(ip)
-            worker.check_gw('docklet-br-'+str(uid), username, uid, self.users[username].get_gateway_cidr(), input_rate_limit, output_rate_limit)
+            worker.check_gw('docklet-br-'+str(uid), username, uid, self.users[username].get_gateway_cidr(),
+                            input_rate_limit, output_rate_limit, network)
         del self.users[username]
         return [True, 'check gw ok']
 

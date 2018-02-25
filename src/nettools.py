@@ -342,10 +342,10 @@ class netcontrol(object):
         return ovscontrol.del_port(bridge, gwport)
 
     @staticmethod
-    def check_gw(bridge, gwport, uid, addr, input_rate_limit, output_rate_limit):
+    def check_gw(bridge, gwport, uid, addr, input_rate_limit, output_rate_limit, network):
         ovscontrol.add_bridge(bridge)
         if not netcontrol.gw_exists(bridge, gwport):
-            return netcontrol.setup_gw(bridge, gwport, addr, input_rate_limit, output_rate_limit)
+            return netcontrol.setup_gw(bridge, gwport, addr, input_rate_limit, output_rate_limit, network)
         [status, info] = ipcontrol.link_info(gwport)
         if not status:
             return [False, "get gateway info failed"]
