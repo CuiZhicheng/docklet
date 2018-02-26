@@ -437,8 +437,8 @@ class VclusterMgr(object):
             worker = xmlrpc.client.ServerProxy("http://%s:%s" % (container['host'], env.getenv("WORKER_PORT")))
             if worker is None:
                 return [False, "The worker can't be found or has been stopped."]
-            worker.del_container_network(container['containername'], clustername,
-                                         worker.getPidByName(container['containername']), info['network'])
+            [status, pid] = worker.getPidByName(container['containername'])
+            worker.del_container_network(container['containername'], clustername, pid, info['network'])
             worker.stop_container(container['containername'])
         [status, info] = self.get_clusterinfo(clustername, username)
         info['status'] = 'stopped'
