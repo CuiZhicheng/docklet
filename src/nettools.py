@@ -462,6 +462,8 @@ class netcontrol(object):
         namesplit = container_name.split('-')
         username = namesplit[0]
         NetworkName = username + "-" + clustername
+        logger.info("CNI_PATH=/opt/bin /opt/bin/cnitool del %s /var/run/netns/%s" % (NetworkName, pid))
+
         ret = os.system(
             "CNI_PATH=/opt/bin /opt/bin/cnitool del %s /var/run/netns/%s" % (NetworkName, pid))
         if ret == 0:
