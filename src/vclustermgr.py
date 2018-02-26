@@ -260,6 +260,7 @@ class VclusterMgr(object):
 
         try:
             target = 'http://' + info['containers'][0]['ip'].split('/')[0] + ":10000"
+            logger.info("start_cluster get proxy target %s" % target)
             if self.distributedgw == 'True':
                 worker = self.nodemgr.ip_to_rpc(info['proxy_server_ip'])
                 # check public ip
