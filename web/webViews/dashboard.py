@@ -25,6 +25,7 @@ class dashboardView(normalView):
                     single_cluster['status'] = message['status']
                     single_cluster['id'] = message['clusterid']
                     single_cluster['proxy_public_ip'] = message['proxy_public_ip']
+                    single_cluster['network'] = message['network']
                     full_clusters.append(single_cluster)
                 else:
                     self.error()
