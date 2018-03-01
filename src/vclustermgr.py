@@ -240,7 +240,7 @@ class VclusterMgr(object):
             [status, pid] = worker.getPidByName(container['containername'])
 
             logger.info("update user %s network" % username)
-            [status, result] = worker.add_container_network(container['containername'], clustername, pid, ip, gateway,
+            [status, result] = worker.add_container_network(container['containername'], pid, ip, gateway,
                                                             network)
             if not status:
                 logger.info("update container %s network failed: %s" % (container['containername'], result))
@@ -348,7 +348,7 @@ class VclusterMgr(object):
             pid = result  
   
             logger.info("update user %s network" % username)  
-            [status, result] = oneworker.add_container_network(lxc_name, clustername, pid, ip, gateway,
+            [status, result] = oneworker.add_container_network(lxc_name, pid, ip, gateway,
                                                                clusterinfo["network"])
             if not status:  
                 logger.info("update user % s network failed: %s" % (username, result))  
@@ -384,7 +384,7 @@ class VclusterMgr(object):
                 if worker is None:
                     return [False, "The worker can't be found or has been stopped."]
                 [status, pid] = worker.getPidByName(containername)
-                worker.del_container_network(containername, clustername, pid, info['network'])
+                worker.del_container_network(containername, pid, info['network'])
                 self.networkmgr.release_userips(username, container['ip'])
                 worker.stop_container(containername)
                 worker.delete_container(containername)
@@ -438,7 +438,7 @@ class VclusterMgr(object):
             if worker is None:
                 return [False, "The worker can't be found or has been stopped."]
             [status, pid] = worker.getPidByName(container['containername'])
-            worker.del_container_network(container['containername'], clustername, pid, info['network'])
+            worker.del_container_network(container['containername'], pid, info['network'])
             worker.stop_container(container['containername'])
         [status, info] = self.get_clusterinfo(clustername, username)
         info['status'] = 'stopped'
@@ -459,10 +459,10 @@ class VclusterMgr(object):
             worker = xmlrpc.client.ServerProxy("http://%s:%s" % (container['host'], env.getenv("WORKER_PORT")))
             if worker is None:
                 return [False, "The worker can't be found or has been stopped."]
-            # worker.del_container_network(container['containername'], clustername,
+            # worker.del_container_network(container['containername'],
             #                              worker.getPidByName(container['containername']), info['network'])
             # worker.stop_container(container['containername'])
-            worker.del_user_network(username, clustername)
+            worker.del_user_network(username)
             worker.delete_container(container['containername'])
             ips.append(container['ip'])
         logger.info("delete vcluster and release vcluster ips")

@@ -374,7 +374,7 @@ class netcontrol(object):
         ovscontrol.add_port("docklet-br-"+str(uid), portname)
 
     @staticmethod
-    def add_container_network(container_name, clustername, pid, ip, gateway, network):
+    def add_container_network(container_name, pid, ip, gateway, network):
         namesplit = container_name.split('-')
         username = namesplit[0]
 
@@ -390,10 +390,10 @@ class netcontrol(object):
             result = result + route_result
             return [True, container_name + " " + result]
         else:
-            [status, result] = netcontrol.add_user_network(username, clustername, network)
+            [status, result] = netcontrol.add_user_network(username, network)
             if not status:
                 return [False, container_name + " add user network failed for: " + result]
-            [status, result] = netcontrol.add_cni_network(username, clustername, pid, ip)
+            [status, result] = netcontrol.add_cni_network(username, pid, ip)
             return [status, container_name + " add cni network failed  for: " + result]
 
     @staticmethod
@@ -416,8 +416,8 @@ class netcontrol(object):
             return [False, "netns %s add route failed : %s" % (pid, suberror.stdout.decode('utf-8'))]
 
     @staticmethod
-    def add_user_network(username, clustername, network):
-        NetworkName = username + "-" + clustername
+    def add_user_network(username, network):
+        NetworkName = username
         NetworkConfPath = "/etc/cni/net.d/%s.conf" % NetworkName
         etcd = "http://" + env.getenv("ETCD")
         StandardNetworkConf = """{'type': '%s', 'etcd_endpoints': '%s', 'name': '%s', 'ipam': {'type': 'calico-ipam'}}""" \
@@ -445,8 +445,8 @@ class netcontrol(object):
         return [True, "set up network conf success"]
 
     @staticmethod
-    def add_cni_network(username, clustername, pid, ip):
-        NetworkName = username + "-" + clustername
+    def add_cni_network(username, pid, ip):
+        NetworkName = username
         ip = ip.split("/")[0]
         logger.info("CNI_ARGS='IP=%s' CNI_PATH=/opt/bin /opt/bin/cnitool add %s /var/run/netns/%s" % (ip, NetworkName, pid))
         ret = os.system("CNI_ARGS='IP=%s' CNI_PATH=/opt/bin /opt/bin/cnitool add %s /var/run/netns/%s" % (ip, NetworkName, pid))
@@ -456,12 +456,17 @@ class netcontrol(object):
             return [False, "add up cni network failed"]
 
     @staticmethod
-    def del_container_network(container_name, clustername, pid, network):
+    def del_container_network(container_name, pid, network):
         if network == "ovs":
             return [True, 'del ovs network']
         namesplit = container_name.split('-')
         username = namesplit[0]
-        NetworkName = username + "-" + clustername
+        [status, result] = netcontrol.del_cni_network(username, pid)
+        return [status, result]
+
+    @staticmethod
+    def del_cni_network(username, pid):
+        NetworkName = username
         logger.info("CNI_PATH=/opt/bin /opt/bin/cnitool del %s /var/run/netns/%s" % (NetworkName, pid))
 
         ret = os.system(
@@ -472,8 +477,8 @@ class netcontrol(object):
             return [False, "del cni network failed"]
 
     @staticmethod
-    def del_user_network(username, clustername):
-        NetworkName = username + "-" + clustername
+    def del_user_network(username):
+        NetworkName = username
         NetworkConfPath = "/etc/cni/net.d/%s.conf" % NetworkName
         if not os.path.exists(NetworkConfPath):
             return [True, 'del user:%s network:%s success' % (username, NetworkName)]
