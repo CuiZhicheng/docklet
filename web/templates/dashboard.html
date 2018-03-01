@@ -37,6 +37,7 @@
                              <th>ID</th>
                              <th>Name</th>
 			     <th>Status</th>
+                 <th>NetworkType</th>
 			     <th>Operation</th>
 			     <th>WorkSpace</th>
 			     <th>Location</th>
@@ -50,7 +51,8 @@
                              <td><a href="/config/">{{ cluster['name'] }}</a></td>
 			     {% if cluster['status'] == 'running' %}
 			     <td><a href="/vclusters/"><div class="text-success"><i class="fa fa-play"></i> Running</div></a></td>
-			     <td>
+			     <td>{{ cluster['network'] }}</td>
+                 <td>
 				     <a href="/workspace/{{master.split("@")[0]}}/stop/{{ cluster['name'] }}/"><button type="button"  class="btn btn-xs btn-warning"> &nbsp;Stop&nbsp;&nbsp; </button></a>
 				     <button type="button" class="btn btn-xs btn-default"> Delete </button>
 			     </td>
@@ -59,7 +61,8 @@
 				</td>
 			     {% else %}
 			     <td><a href="/vclusters/"><div class="text-warning"><i class="fa fa-stop "></i> Stopped</div></a></td>
-			     <td>
+			     <td>{{ cluster['network'] }}</td>
+                 <td>
 				     <a href="/workspace/{{master.split("@")[0]}}/start/{{ cluster['name'] }}/"><button type="button" class="btn btn-xs btn-success"> &nbsp;Start&nbsp;</button></a>
 				     <a href="/workspace/{{master.split("@")[0]}}/delete/{{ cluster['name'] }}/"><button type="button"  class="btn btn-xs btn-danger">Delete</button></a>
 			     </td>

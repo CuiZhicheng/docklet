@@ -876,20 +876,3 @@ class VclusterMgr(object):
         self.etcd.setkey("vcluster/nextid", str(int(clusterid)+1))
         self.clusterid_locks.release()
         return int(clusterid)
-
-    def update_user_hosts(self, clustername, username, ip):  
-        [status, info] = self.get_clusterinfo(clustername, username)  
-        if not status:  
-            return [False, "cluster not found"]  
-        if info['status'] == 'running':  
-            return [False, "cluster is already running"]  
-        clusterid = info['clusterid']  
-        hostname = info['hostname']  
-        hostpath = self.fspath+"/global/users/"+username+"/hosts/"+str(clusterid)+".hosts"  
-        hostfile = open(hostfile, 'r')  
-        hosts = hostfile.read()  
-        hostfile.close()  
-        hosts = hosts + ip.split("/")[0] + "\t" + hostname + "\t" + hostname + "." + clustername + "\n"  
-        hostfile = open(hostpath, 'w')  
-        hostfile.write(hosts)  
-        hostfile.close()  
