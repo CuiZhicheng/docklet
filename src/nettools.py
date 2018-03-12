@@ -453,7 +453,7 @@ class netcontrol(object):
         namesplit = container_name.split('-')
         username = namesplit[0]
         NetworkName = username
-        HostVethName = namesplit[1] + "-" + namesplit[2]
+        HostVethName = namesplit[1][4:] + "-" + namesplit[2]
         ip = ip.split("/")[0]
         logger.info("CNI_CONTAINERID=%s CNI_ARGS='IP=%s' CNI_PATH=/opt/bin /opt/bin/cnitool add %s /var/run/netns/%s"
                     % (HostVethName, ip, NetworkName, pid))
@@ -478,7 +478,7 @@ class netcontrol(object):
         namesplit = container_name.split('-')
         username = namesplit[0]
         NetworkName = username
-        HostVethName = namesplit[1] + "-" + namesplit[2]
+        HostVethName = namesplit[1][4:] + "-" + namesplit[2]
         logger.info("CNI_CONTAINERID=%s CNI_PATH=/opt/bin /opt/bin/cnitool del %s /var/run/netns/%s"
                     % (HostVethName, NetworkName, pid))
 
