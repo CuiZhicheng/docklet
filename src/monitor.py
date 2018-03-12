@@ -257,7 +257,7 @@ class Container_Collector(threading.Thread):
     def collect_net_stats(self):
         raw_stats = psutil.net_io_counters(pernic=True)
         for key in raw_stats.keys():
-            if re.match('[\d]+-[\d]+',key) is not None:
+            if re.match('[a-z]*[\d]+-[\d]+',key) is not None:
                 if key not in self.net_stats.keys():
                     self.net_stats[key] = {}
                     self.net_stats[key]['bytes_sent'] = 0
