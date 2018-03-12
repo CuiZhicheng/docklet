@@ -379,7 +379,8 @@ class netcontrol(object):
         username = namesplit[0]
 
         netcontrol.netns_add_link(pid)
-        logger.info("add link")
+        logger.info("add link for %s, pid:%s, ip:%s, gateway:%s, network:%s"
+                    % (container_name, pid, ip, gateway, network))
         if network == "ovs":
             [status, result] = ipcontrol.netns_add_addr(pid, ip)
             if not status:
@@ -393,8 +394,11 @@ class netcontrol(object):
             [status, result] = netcontrol.add_user_network(username, network)
             if not status:
                 return [False, container_name + " add user network failed for: " + result]
-            [status, result] = netcontrol.add_cni_network(username, pid, ip)
-            return [status, container_name + " add cni network failed  for: " + result]
+            [status, result] = netcontrol.add_cni_network(container_name, pid, ip)
+            if status:
+                if network == "calico":
+                    result = "cali" + result
+            return [status, result]
 
     @staticmethod
     def netns_add_link(pid):
@@ -420,17 +424,17 @@ class netcontrol(object):
         NetworkName = username
         NetworkConfPath = "/etc/cni/net.d/%s.conf" % NetworkName
         etcd = "http://" + env.getenv("ETCD")
-        StandardNetworkConf = """{'type': '%s', 'etcd_endpoints': '%s', 'name': '%s', 'ipam': {'type': 'calico-ipam'}}""" \
-                              % (network, etcd, NetworkName)
+        StandardNetworkConf = """{'type': '%s', 'etcd_endpoints': '%s', 'name': '%s', 'ipam': {'type': '%s-ipam'}}""" \
+                              % (network, etcd, NetworkName, network)
         StandardNetworkYaml = """
 {
     "name": "%s",
     "type": "%s",
     "etcd_endpoints": "%s",
     "ipam": {
-        "type": "calico-ipam"
+        "type": "%s-ipam"
     }
-}""" % (NetworkName, network, etcd)
+}""" % (NetworkName, network, etcd, network)
 
         if (os.path.exists(NetworkConfPath)):
             NetworkConfFile = open(NetworkConfPath, "r")
@@ -445,13 +449,18 @@ class netcontrol(object):
         return [True, "set up network conf success"]
 
     @staticmethod
-    def add_cni_network(username, pid, ip):
+    def add_cni_network(container_name, pid, ip):
+        namesplit = container_name.split('-')
+        username = namesplit[0]
         NetworkName = username
+        HostVethName = namesplit[1] + "-" + namesplit[2]
         ip = ip.split("/")[0]
-        logger.info("CNI_ARGS='IP=%s' CNI_PATH=/opt/bin /opt/bin/cnitool add %s /var/run/netns/%s" % (ip, NetworkName, pid))
-        ret = os.system("CNI_ARGS='IP=%s' CNI_PATH=/opt/bin /opt/bin/cnitool add %s /var/run/netns/%s" % (ip, NetworkName, pid))
+        logger.info("CNI_CONTAINERID=%s CNI_ARGS='IP=%s' CNI_PATH=/opt/bin /opt/bin/cnitool add %s /var/run/netns/%s"
+                    % (HostVethName, ip, NetworkName, pid))
+        ret = os.system("CNI_CONTAINERID=%s CNI_ARGS='IP=%s' CNI_PATH=/opt/bin /opt/bin/cnitool add %s /var/run/netns/%s"
+                        % (HostVethName, ip, NetworkName, pid))
         if ret == 0:
-            return [True, "add up cni network success"]
+            return [True, HostVethName]
         else:
             return [False, "add up cni network failed"]
 
@@ -461,16 +470,20 @@ class netcontrol(object):
             return [True, 'del ovs network']
         namesplit = container_name.split('-')
         username = namesplit[0]
-        [status, result] = netcontrol.del_cni_network(username, pid)
+        [status, result] = netcontrol.del_cni_network(container_name, pid)
         return [status, result]
 
     @staticmethod
-    def del_cni_network(username, pid):
+    def del_cni_network(container_name, pid):
+        namesplit = container_name.split('-')
+        username = namesplit[0]
         NetworkName = username
-        logger.info("CNI_PATH=/opt/bin /opt/bin/cnitool del %s /var/run/netns/%s" % (NetworkName, pid))
+        HostVethName = namesplit[1] + "-" + namesplit[2]
+        logger.info("CNI_CONTAINERID=%s CNI_PATH=/opt/bin /opt/bin/cnitool del %s /var/run/netns/%s"
+                    % (HostVethName, NetworkName, pid))
 
-        ret = os.system(
-            "CNI_PATH=/opt/bin /opt/bin/cnitool del %s /var/run/netns/%s" % (NetworkName, pid))
+        ret = os.system("CNI_CONTAINERID=%s CNI_PATH=/opt/bin /opt/bin/cnitool del %s /var/run/netns/%s"
+                        % (HostVethName, NetworkName, pid))
         if ret == 0:
             return [True, "del cni network success"]
         else:

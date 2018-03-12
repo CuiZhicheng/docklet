@@ -161,7 +161,10 @@ class VclusterMgr(object):
                 if not status:
                     logger.error("Fail to get proxy_public_ip %s."%(proxy_server_ip))
                     return [False, "Fail to get proxy server public IP."]
-            lxc_name = username + "-" + str(clusterid) + "-" + str(i)
+            lxc_name = username + "-"
+            if network == "calico":
+                lxc_name = lxc_name + "cali"
+            lxc_name = lxc_name + str(clusterid) + "-" + str(i)
             hostname = "host-"+str(i)
             # logger.info ("create container with : name-%s, username-%s, clustername-%s, clusterid-%s, hostname-%s, ip-%s, gateway-%s, image-%s" % (lxc_name, username, clustername, str(clusterid), hostname, ips[i], gateway, image_json))
             # [success,message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, json.dumps(setting) , clustername, str(clusterid), str(i), hostname, ips[i], gateway, image_json)
@@ -243,8 +246,9 @@ class VclusterMgr(object):
             [status, result] = worker.add_container_network(container['containername'], pid, ip, gateway,
                                                             network)
             if not status:
-                logger.info("update container %s network failed: %s" % (container['containername'], result))
+                logger.info("add container %s network failed: %s" % (container['containername'], result))
                 return [False, result]
+            container['hostvethname'] = result
             container['ip'] = ip
             logger.info("update user %s network with pid %s, ip %s, gateway %s success" % (username, pid, ip, gateway))
 
@@ -314,12 +318,16 @@ class VclusterMgr(object):
         cid = clusterinfo['nextcid']
         workerip = workers[random.randint(0, len(workers)-1)]
         oneworker = xmlrpc.client.ServerProxy("http://%s:%s" % (workerip, env.getenv("WORKER_PORT")))
-        lxc_name = username + "-" + str(clusterid) + "-" + str(cid)
+        lxc_name = username + "-"
+        if clusterinfo['network'] == "calico":
+            lxc_name = lxc_name + "cali"
+        lxc_name = lxc_name + str(clusterid) + "-" + str(cid)
         hostname = "host-" + str(cid)
         proxy_server_ip = clusterinfo['proxy_server_ip']
         proxy_public_ip = clusterinfo['proxy_public_ip']
         uid = json.loads(user_info)["data"]["id"]
         setting["network"] = clusterinfo['network']
+        hostvethname = ""
         # [success, message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, json.dumps(setting), clustername, clusterid, str(cid), hostname, ip, gateway, image_json)
         [success, message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, json.dumps(setting), clustername, clusterid, str(cid), hostname, gateway, image_json)
         if success is False:
@@ -352,8 +360,11 @@ class VclusterMgr(object):
                                                                clusterinfo["network"])
             if not status:  
                 logger.info("update user % s network failed: %s" % (username, result))  
-                return [False, result]  
+                return [False, result]
+
+            hostvethname = result
             logger.info("add user %s network with pid %s, ip %s, gateway %s success" % (username, pid, ip, gateway))
+
 
             oneworker.start_services(lxc_name, ["ssh"]) # TODO: need fix
             namesplit = lxc_name.split('-')
@@ -367,7 +378,7 @@ class VclusterMgr(object):
         hostfile.close()
         clusterinfo['nextcid'] = int(clusterinfo['nextcid']) + 1
         clusterinfo['size'] = int(clusterinfo['size']) + 1
-        clusterinfo['containers'].append({'containername':lxc_name, 'hostname':hostname, 'ip':ip, 'host':workerip, 'image':image['name'], 'lastsave':datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'setting': setting})
+        clusterinfo['containers'].append({'containername':lxc_name, 'hostvethname':hostvethname, 'hostname':hostname, 'ip':ip, 'host':workerip, 'image':image['name'], 'lastsave':datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'setting': setting})
         clusterfile = open(clusterpath, 'w')
         clusterfile.write(json.dumps(clusterinfo))
         clusterfile.close()
