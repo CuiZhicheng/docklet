@@ -322,7 +322,7 @@ class NetworkMgr(object):
             self.system = EnumPool(sysaddr+"/"+str(syscidr))
             self.usrgws = {}
             self.users = {}
-            self.networkplugins = {}
+            self.networkplugins = {"ovs": NetworkPlugin("ovs", "2.5.2")}
             #self.vlanids = {}
             #self.init_vlanids(4095, 60)
             #self.init_shared_vlanids()
@@ -335,7 +335,7 @@ class NetworkMgr(object):
             self.system = None
             self.usrgws = {}
             self.users = {}
-            self.networkplugins = {}
+            self.networkplugins = {"ovs": NetworkPlugin("ovs", "2.5.2")}
             #self.vlanids = {}
             self.load_center()
             self.load_system()

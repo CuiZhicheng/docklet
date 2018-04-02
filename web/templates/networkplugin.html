@@ -107,17 +107,17 @@
                                                     <span aria-hidden="true">&times;</span>
                                                     <span class="sr-only">Close</span>
                                                 </button>
-                                                <h4 class="modal-title">Delete Notification </h4>
-                                                <small class="font-bold">Delete this notification</small>
+                                                <h4 class="modal-title">Delete Network Plugin </h4>
+                                                <small class="font-bold">Delete this Network Plugin</small>
                                             </div>
                                             <div class="modal-body">
                                                 <strong class="text-center">Are you sure to do this?</strong>
-                                                <form id="deleteNotificationForm_{{ notify['id'] }}" style="display: none" action="/notification/delete/" method="post">
-                                                    <input type="text" class="form-control" name="notify_id" style="display: none" value="{{ notify['id'] }}">
+                                                <form id="deleteNetworkPluginForm_{{ networkplugin['name'] }}" style="display: none" action="/networkplugin/delete/" method="post">
+                                                    <input type="text" class="form-control" name="networkplugin['name']" style="display: none" value="{{ networkplugin['name'] }}">
                                                 </form>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-danger" onClick="sendDeleteNotification({{ notify['id'] }});">Delete</button>
+                                                <button type="button" class="btn btn-danger" onClick="sendDeleteNetworkPlugin({{ networkplugin['name'] }});">Delete</button>
                                                 <button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button>
                                             </div>
                                         </div>
@@ -137,11 +137,8 @@
 
 {% block script_src %}
     <script type="text/javascript">
-        function sendModifyNotification(notifyId) {
-            $('#modifyNotificationForm_'+notifyId).submit();
-        }
-        function sendDeleteNotification(notifyId) {
-            $('#deleteNotificationForm_'+notifyId).submit();
+        function sendDeleteNetworkPlugin(networkpluginName) {
+            $('#deleteNetworkPluginForm_'+networkpluginName).submit();
         }
     </script>
 {% endblock %}
