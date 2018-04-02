@@ -658,14 +658,13 @@ def resetall_system(user, beans, form):
 @app.route("/networkplugin/list/", methods=['POST'])
 @login_required
 def list_networkplugin(user, beans, form):
-    return json.dumps({'success':'true', 'networkplugins':''})
-    # global G_networkmgr
-    # logger.info("handle request: networkplugin/list/")
-    # [status, message] = G_networkmgr.get_networkplugin()
-    # if status is True:
-    #     return json.dumps({'success':'true', 'action':'list networkplugin', 'networkplugins': message})
-    # else:
-    #     return json.dumps({'success':'false', 'action':'list networkplugin','networkplugins': message})
+    global G_networkmgr
+    logger.info("handle request: networkplugin/list/")
+    [status, message] = G_networkmgr.get_networkplugin()
+    if status is True:
+        return json.dumps({'success':'true', 'action':'list networkplugin', 'networkplugins': message})
+    else:
+        return json.dumps({'success':'false', 'action':'list networkplugin','networkplugins': message})
 
 @app.route("/networkplugin/crate/", methods=['POST'])
 @login_required
