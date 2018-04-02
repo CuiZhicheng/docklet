@@ -45,9 +45,7 @@ class dockletRequest():
         if ":" not in endpoint:
             endpoint = "http://"+endpoint+":"+master_port
         if reqtype in userreq:
-            tmp = requests.post(user_endpoint + url, data=data)
-            logger.info(tmp)
-            result = tmp.json()
+            result = requests.post(user_endpoint + url, data=data).json()
         else:
             result = requests.post(endpoint + url, data=data).json()
         # logger.info('response content: %s'%response.content)

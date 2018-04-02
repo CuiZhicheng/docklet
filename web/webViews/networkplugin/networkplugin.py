@@ -10,7 +10,8 @@ class NetworkPluginView(normalView):
 
     @classmethod
     def get(cls):
-        result = dockletRequest.post_to_all('/networkplugin/list/')
+        masterips = dockletRequest.post_to_all()
+        result = dockletRequest.post('/networkplugin/list/',{},masterips[0].split("@")[0]).get('networkplugins')
         # groups = dockletRequest.post('/user/groupNameList/')['groups']
         allnetworkplugins = result['networkplugins']
         return cls.render(cls.template_path, allnetworkplugins=allnetworkplugins)
