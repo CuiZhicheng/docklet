@@ -489,7 +489,7 @@ class NetworkMgr(object):
 
     def get_networkplugin(self):
         self.load_plugin()
-        return [True, self.networkplugins]
+        return [True, self.networkplugins.values()]
 
     def add_networkplugin(self, name, version):
         self.load_plugin()
@@ -504,7 +504,7 @@ class NetworkMgr(object):
         self.load_plugin()
         if name not in self.networkplugins.keys():
             return [False, "network plugin %s does not exist" % name]
-        self.networkplugins.remove(name)
+        del self.networkplugins[name]
         self.dump_plugin()
         return [True, "del network plugin %s success" % name]
 
