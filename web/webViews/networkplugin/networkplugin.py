@@ -11,7 +11,7 @@ class NetworkPluginView(normalView):
     @classmethod
     def get(cls):
         masterips = dockletRequest.post_to_all()
-        result = dockletRequest.post('/networkplugin/list/',{},masterips[0].split("@")[0])
+        result = dockletRequest.post('/networkplugin/list/', {}, masterips[0].split("@")[0])
         # groups = dockletRequest.post('/user/groupNameList/')['groups']
         allnetworkplugins = result['networkplugins']
         return cls.render(cls.template_path, allnetworkplugins=allnetworkplugins)
@@ -22,7 +22,8 @@ class CreateNetworkPluginView(normalView):
 
     @classmethod
     def post(cls):
-        dockletRequest.post_to_all('/networkplugin/create/', request.form)
+        masterips = dockletRequest.post_to_all()
+        dockletRequest.post('/networkplugin/create/', request.form, masterips[0].split("@")[0])
         # return redirect('/admin/')
         return redirect('/networkplugin/')
 
@@ -41,5 +42,6 @@ class CreateNetworkPluginView(normalView):
 class DeleteNetworkPluginView(normalView):
     @classmethod
     def post(cls):
-        dockletRequest.post_to_all('/networkplugin/delete/', request.form)
+        masterips = dockletRequest.post_to_all()
+        dockletRequest.post_to_all('/networkplugin/delete/', request.form, masterips[0].split("@")[0])
         return redirect('/networkplugin/')
