@@ -673,6 +673,7 @@ def add_networkplugin(user, beans, form):
     global G_ulockmgr
     global G_imagemgr
     global G_networkmgr
+    logger.info("handle request: networkplugin/create/")
     G_ulockmgr.acquire(user)
     name = form.get("name", None)
     if name == None:
@@ -684,6 +685,7 @@ def add_networkplugin(user, beans, form):
     if version == None:
         return json.dumps({'success':'false', 'message':'networkplugin version is null'})
     [status, message] = G_networkmgr.add_networkplugin(name, version)
+    G_ulockmgr.release(user)
     if status is True:
         return json.dumps({'success':'true', 'action':'create networkplugin', 'message': message})
     else:
@@ -693,10 +695,14 @@ def add_networkplugin(user, beans, form):
 @login_required
 def del_networkplugin(user, beans, form):
     global G_networkmgr
+    global G_ulockmgr
+    logger.info("handle request: networkplugin/delete/")
+    G_ulockmgr.acquire(user)
     name = form.get('networkpluginName', None)
     if name == None:
         return json.dumps({'success':'false', 'message':'networkplugin name is null'})
     [status, message] = G_networkmgr.del_networkplugin(name)
+    G_ulockmgr.release(user)
     if status is True:
         return json.dumps({'success':'true', 'action':'delete networkplugin', 'message': message})
     else:
