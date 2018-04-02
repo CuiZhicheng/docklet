@@ -211,7 +211,7 @@ class EnumPool(object):
         [status, result] = self.acquire(int(num))
         if not status:
             return [status, result]
-        return [True, list(map(lambda x:x+"/"+self.inf1o.split('/')[1], result))]
+        return [True, list(map(lambda x:x+"/"+self.info.split('/')[1], result))]
 
     def inrange(self, ip):
         addr = self.info.split('/')[0]
