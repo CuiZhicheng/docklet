@@ -333,7 +333,7 @@ class NetworkMgr(object):
             self.system = None
             self.usrgws = {}
             self.users = {}
-            self.networkplugins = {"ovs": {"name":"ovs", "version":"2.5.2", "create_time":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "used_times": 0, "used_users": []}}
+            self.networkplugins = {}
             #self.vlanids = {}
             self.load_center()
             self.load_system()
