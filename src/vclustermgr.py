@@ -123,7 +123,7 @@ class VclusterMgr(object):
         if not self.networkmgr.has_user(username):
             ipnum = int(groupquota["vnode"]) + 3
             cidr = 32 - math.ceil(math.log(ipnum,2))
-            self.networkmgr.add_user(username, cidr=cidr, network, isshared = True if str(groupname) == "fundation" else False)
+            self.networkmgr.add_user(username, cidr=cidr, network = network, isshared = True if str(groupname) == "fundation" else False)
             if self.distributedgw == "False":
                 [success,message] = self.networkmgr.setup_usrgw(groupquota['input_rate_limit'], groupquota['output_rate_limit'], username, uid, self.nodemgr, network)
                 if not success:
