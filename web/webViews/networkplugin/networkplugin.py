@@ -17,7 +17,7 @@ class NetworkPluginView(normalView):
 
 
 class CreateNetworkPluginView(normalView):
-    template_path = 'create_notification.html'
+    template_path = 'create_networkplugin.html'
 
     @classmethod
     def post(cls):

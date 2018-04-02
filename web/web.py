@@ -561,19 +561,19 @@ def query_self_notifications():
 def query_notification_detail(notify_id):
     return QueryNotificationView.get_by_id(notify_id)
 
-@app.route("/networkplugin/list/", methods=['GET'])
+@app.route("/networkplugin/", methods=['GET'])
 @administration_required
 def networkplugin_list():
     return NetworkPluginView.as_view()
 
 @app.route("/networkplugin/create/", methods=['POST'])
 @administration_required
-def networkplugin_list():
+def create_networkplugin():
     return CreateNetworkPluginView.as_view()
 
 @app.route("/networkplugin/delete/", methods=['POST'])
 @administration_required
-def delete_notification():
+def delete_networkplugin():
     return DeleteNetworkPluginView.as_view()
 
 @app.route("/system/modify/", methods=['POST'])
