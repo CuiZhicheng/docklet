@@ -21,7 +21,6 @@ class addClusterView(normalView):
         restcpu = int(quota['cpu']) - int(usage['cpu'])
         restmemory = int(quota['memory']) - int(usage['memory'])
         restdisk = int(quota['disk']) - int(usage['disk'])
-        networkplugin = networkplugins.keys()
         defaultnetworkplugin = "ovs"
         if restcpu >= int(default['cpu']):
             defaultcpu = default['cpu']
@@ -51,7 +50,7 @@ class addClusterView(normalView):
                 'networkplugin': defaultnetworkplugin
                 }
         if (result):
-            return self.render(self.template_path, user = session['username'],masterips = masterips, images = images, quota = quota, usage = usage, networkplugin = networkplugin, defaultsetting = defaultsetting, masterdesc=desc)
+            return self.render(self.template_path, user = session['username'],masterips = masterips, images = images, quota = quota, usage = usage, networkplugin = networkplugins, defaultsetting = defaultsetting, masterdesc=desc)
         else:
             self.error()
 
