@@ -489,7 +489,11 @@ class NetworkMgr(object):
 
     def get_networkplugin(self):
         self.load_plugin()
-        return [True, self.networkplugins.values()]
+        values = self.networkplugins.values()
+        result = []
+        for plugin in values:
+            result.append(plugin)
+        return [True, result]
 
     def add_networkplugin(self, name, version):
         self.load_plugin()
