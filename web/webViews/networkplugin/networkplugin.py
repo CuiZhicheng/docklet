@@ -5,7 +5,7 @@ from webViews.view import normalView
 from webViews.dockletrequest import dockletRequest
 
 
-class NotificationView(normalView):
+class NetworkPluginView(normalView):
     template_path = 'networkplugin.html'
 
     @classmethod
