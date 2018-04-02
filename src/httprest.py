@@ -666,7 +666,7 @@ def list_networkplugin(user, beans, form):
     else:
         return json.dumps({'success':'false', 'action':'list networkplugin','networkplugins': message})
 
-@app.route("/networkplugin/crate/", methods=['POST'])
+@app.route("/networkplugin/create/", methods=['POST'])
 @login_required
 def add_networkplugin(user, beans, form):
     global G_vclustermgr
@@ -674,18 +674,16 @@ def add_networkplugin(user, beans, form):
     global G_imagemgr
     global G_networkmgr
     logger.info("handle request: networkplugin/create/")
-    G_ulockmgr.acquire(user)
     name = form.get("name", None)
     if name == None:
-        G_ulockmgr.release(user)
         return json.dumps({'success':'false', 'message':'networkplugin name is null'})
     # clustername = name + "-test"
     # images = G_imagemgr.list_images(user)
     # test_image = images[0]
     version = form.get("version", None)
     if version == None:
-        G_ulockmgr.release(user)
         return json.dumps({'success':'false', 'message':'networkplugin version is null'})
+    G_ulockmgr.acquire(user)
     [status, message] = G_networkmgr.add_networkplugin(name, version)
     G_ulockmgr.release(user)
     if status is True:
@@ -699,11 +697,10 @@ def del_networkplugin(user, beans, form):
     global G_networkmgr
     global G_ulockmgr
     logger.info("handle request: networkplugin/delete/")
-    G_ulockmgr.acquire(user)
     name = form.get('networkpluginName', None)
     if name == None:
-        G_ulockmgr.release(user)
         return json.dumps({'success':'false', 'message':'networkplugin name is null'})
+    G_ulockmgr.acquire(user)
     [status, message] = G_networkmgr.del_networkplugin(name)
     G_ulockmgr.release(user)
     if status is True:
