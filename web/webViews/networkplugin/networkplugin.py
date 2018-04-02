@@ -43,5 +43,5 @@ class DeleteNetworkPluginView(normalView):
     @classmethod
     def post(cls):
         masterips = dockletRequest.post_to_all()
-        dockletRequest.post_to_all('/networkplugin/delete/', request.form, masterips[0].split("@")[0])
+        dockletRequest.post('/networkplugin/delete/', request.form, masterips[0].split("@")[0])
         return redirect('/networkplugin/')

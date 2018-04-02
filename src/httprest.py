@@ -677,12 +677,14 @@ def add_networkplugin(user, beans, form):
     G_ulockmgr.acquire(user)
     name = form.get("name", None)
     if name == None:
+        G_ulockmgr.release(user)
         return json.dumps({'success':'false', 'message':'networkplugin name is null'})
     # clustername = name + "-test"
     # images = G_imagemgr.list_images(user)
     # test_image = images[0]
     version = form.get("version", None)
     if version == None:
+        G_ulockmgr.release(user)
         return json.dumps({'success':'false', 'message':'networkplugin version is null'})
     [status, message] = G_networkmgr.add_networkplugin(name, version)
     G_ulockmgr.release(user)
@@ -700,6 +702,7 @@ def del_networkplugin(user, beans, form):
     G_ulockmgr.acquire(user)
     name = form.get('networkpluginName', None)
     if name == None:
+        G_ulockmgr.release(user)
         return json.dumps({'success':'false', 'message':'networkplugin name is null'})
     [status, message] = G_networkmgr.del_networkplugin(name)
     G_ulockmgr.release(user)
