@@ -297,8 +297,6 @@ class NetworkPlugin(object):
     def check(self):
         return self.used_times == 0
 
-
-
 # NetworkMgr : mange docklet network ip address
 #   center : interval pool to allocate and free network block with IP/CIDR
 #   system : enumeration pool to acquire and release system ip address
@@ -322,7 +320,7 @@ class NetworkMgr(object):
             self.system = EnumPool(sysaddr+"/"+str(syscidr))
             self.usrgws = {}
             self.users = {}
-            self.networkplugins = {"ovs": NetworkPlugin("ovs", "2.5.2")}
+            self.networkplugins = {"ovs": {"name":"ovs", "version":"2.5.2", "create_time":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "used_times": 0, "used_users": []}}
             #self.vlanids = {}
             #self.init_vlanids(4095, 60)
             #self.init_shared_vlanids()
@@ -335,7 +333,7 @@ class NetworkMgr(object):
             self.system = None
             self.usrgws = {}
             self.users = {}
-            self.networkplugins = {"ovs": NetworkPlugin("ovs", "2.5.2")}
+            self.networkplugins = {"ovs": {"name":"ovs", "version":"2.5.2", "create_time":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "used_times": 0, "used_users": []}}
             #self.vlanids = {}
             self.load_center()
             self.load_system()
@@ -497,7 +495,8 @@ class NetworkMgr(object):
         self.load_plugin()
         if name in self.networkplugins.keys():
             return [False, "network plugin %s already in use." % name]
-        self.networkplugins[name] = NetworkPlugin(name, version)
+        networkplugin = {"name":name, "version":version, "create_time":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "used_times": 0, "used_users": []}
+        self.networkplugins[name] = networkplugin
         self.dump_plugin()
         return [True, "add network plugin %s success" % name]
 
@@ -508,6 +507,19 @@ class NetworkMgr(object):
         self.networkplugins.remove(name)
         self.dump_plugin()
         return [True, "del network plugin %s success" % name]
+
+    def update_networkplugin(self, name, user, IsAdd = True):
+        self.load_plugin()
+        if name not in self.networkplugins.keys():
+            return [False, "network plugin %s does not exist" % name]
+        if IsAdd:
+            self.networkplugins[name][used_times] += 1
+            self.networkplugins[name][used_users].append(user)
+        else:
+            self.networkplugins[name][used_times] -= 1
+            self.networkplugins[name][used_users].remove(user)
+        self.dump_plugin()
+        return [True, "update network plugin usage success"]
 
     def has_usrgw(self, username):
         self.load_usrgw(username)
@@ -561,7 +573,7 @@ class NetworkMgr(object):
         self.dump_user(username)
         del self.users[username]
         self.load_plugin()
-        self.networkplugins[network].add(username)
+        self.update_networkplugin(network, username, IsAdd = True)
         self.dump_plugin()
         self.user_locks.release()
         return [True, 'add user success']
@@ -598,7 +610,7 @@ class NetworkMgr(object):
         self.etcd.deldir("network/users/"+username)
         del self.users[username]
         self.load_plugin()
-        self.networkplugins[network].remove(username)
+        self.update_networkplugin(network, username, IsAdd = False)
         self.dump_plugin()
         self.user_locks.release()
         return [True, 'delete user success']
