@@ -47,7 +47,7 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Create Date</th>
+                                <th>Create Time</th>
                                 <th>Used_Times</th>
                                 <th>User</th>
                                 <th>Operation</th>
@@ -57,7 +57,7 @@
                         {% for networkplugin in allnetworkplugins %}
                             <tr>
                                 <td>{{ networkplugin['name'] }}</td>
-                                <td>{{ networkplugin['create_date'] }}</td>
+                                <td>{{ networkplugin['create_time'] }}</td>
                                 <td>{{ networkplugin['used_times'] }}</td>
                                 <td>
                                     <a class="btn btn-xs btn-success" data-toggle="modal" data-target="#detailModal_{{ networkplugin['name'] }}"><i class="fa fa-plus"></i> details</a>
