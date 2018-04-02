@@ -14,7 +14,7 @@ class addClusterView(normalView):
         images = dockletRequest.post("/image/list/",{},masterips[0].split("@")[0]).get("images")
         desc = dockletRequest.getdesc(masterips[0].split("@")[1])
         result = dockletRequest.post("/user/usageQuery/")
-        networkplugins = dockletRequest.post("/networkplugin/list/").get("networkplugins")
+        networkplugins = dockletRequest.post('/networkplugin/list/',{},masterips[0].split("@")[0]).get('networkplugins')
         quota = result.get("quota")
         usage = result.get("usage")
         default = result.get("default")
