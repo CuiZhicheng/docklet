@@ -320,7 +320,7 @@ class NetworkMgr(object):
             self.system = EnumPool(sysaddr+"/"+str(syscidr))
             self.usrgws = {}
             self.users = {}
-            self.networkplugins = {"ovs": {"name":"ovs", "version":"2.5.2", "create_time":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "used_times": 0, "used_users": []}}
+            self.networkplugins = {"ovs": {"name":"ovs", "version":"2.5.2", "create_time":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "used_times": 0, "used_users": ["root"]}}
             #self.vlanids = {}
             #self.init_vlanids(4095, 60)
             #self.init_shared_vlanids()
