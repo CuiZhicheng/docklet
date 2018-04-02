@@ -401,7 +401,7 @@ class NetworkMgr(object):
         self.etcd.setkey("network/plugin", json.dumps(self.networkplugins))
 
     def load_plugin(self):
-        [status, plugindata] = self.etcd.getkey("networkp/plugin")
+        [status, plugindata] = self.etcd.getkey("network/plugin")
         plugin = json.loads(plugindata)
         self.networkplugins = plugin
 
