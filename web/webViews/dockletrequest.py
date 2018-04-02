@@ -46,7 +46,7 @@ class dockletRequest():
             endpoint = "http://"+endpoint+":"+master_port
         if reqtype in userreq:
             tmp = requests.post(user_endpoint + url, data=data)
-            logger.info(temp)
+            logger.info(tmp)
             result = tmp.json()
         else:
             result = requests.post(endpoint + url, data=data).json()
