@@ -14,12 +14,15 @@ class addClusterView(normalView):
         images = dockletRequest.post("/image/list/",{},masterips[0].split("@")[0]).get("images")
         desc = dockletRequest.getdesc(masterips[0].split("@")[1])
         result = dockletRequest.post("/user/usageQuery/")
+        networkplugins = dockletRequest.post("/networkplugin/list/").get("networkplugins")
         quota = result.get("quota")
         usage = result.get("usage")
         default = result.get("default")
         restcpu = int(quota['cpu']) - int(usage['cpu'])
         restmemory = int(quota['memory']) - int(usage['memory'])
         restdisk = int(quota['disk']) - int(usage['disk'])
+        networkplugin = networkplugins.keys()
+        defaultnetworkplugin = "ovs"
         if restcpu >= int(default['cpu']):
             defaultcpu = default['cpu']
         elif restcpu <= 0:
@@ -44,10 +47,11 @@ class addClusterView(normalView):
         defaultsetting = {
                 'cpu': defaultcpu,
                 'memory': defaultmemory,
-                'disk': defaultdisk
+                'disk': defaultdisk,
+                'networkplugin': defaultnetworkplugin
                 }
         if (result):
-            return self.render(self.template_path, user = session['username'],masterips = masterips, images = images, quota = quota, usage = usage, defaultsetting = defaultsetting, masterdesc=desc)
+            return self.render(self.template_path, user = session['username'],masterips = masterips, images = images, quota = quota, usage = usage, networkplugin = networkplugin, defaultsetting = defaultsetting, masterdesc=desc)
         else:
             self.error()
 

@@ -117,6 +117,15 @@ class ipcontrol(object):
         except subprocess.CalledProcessError as suberror:
             return [False, "netns %s add address failed : %s" % (pid, suberror.stdout.decode('utf-8'))]
 
+    @staticmethod
+    def netns_add_route(pid, gateway):
+        try:
+            subprocess.run(['ip', 'netns', 'exec', str(pid), 'route', 'add', 'default', 'gw', str(gateway)],
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False, check=True)
+            return [True, "netns %s add route success : %s" % (pid, gateway)]
+        except subprocess.CalledProcessError as suberror:
+            return [False, "netns %s add route failed : %s" % (pid, suberror.stdout.decode('utf-8'))]
+
 
 # ovs-vsctl list-br
 # ovs-vsctl br-exists <Bridge>
@@ -287,118 +296,8 @@ class ovscontrol(object):
         except subprocess.CalledProcessError as suberror:
             return [False, "destroy all qos failed : %s" % suberror.stdout.decode('utf-8')]
 
-class netcontrol(object):
-    @staticmethod
-    def bridge_exists(bridge):
-        return ovscontrol.bridge_exist(bridge)
 
-    @staticmethod
-    def del_bridge(bridge):
-        return ovscontrol.del_bridge(bridge)
-
-    @staticmethod
-    def new_bridge(bridge):
-        return ovscontrol.add_bridge(bridge)
-
-    @staticmethod
-    def gre_exists(bridge, remote):
-        # port is unique, bridge is not necessary
-        return ovscontrol.port_exists('gre-'+str(remote))
-
-    @staticmethod
-    def setup_gre(bridge, remote):
-        return ovscontrol.add_port_gre(bridge, 'gre-'+str(remote), remote)
-
-    @staticmethod
-    def gw_exists(bridge, gwport):
-        return ovscontrol.port_exists(gwport)
-
-    @staticmethod
-    def setup_gw(bridge, gwport, addr, input_rate_limit, output_rate_limit, network):
-        if network != "ovs":
-            return [True, 0]
-        [status, result] = ovscontrol.add_port_internal(bridge, gwport)
-        if not status:
-            return [status, result]
-        [status, result] = ipcontrol.add_addr(gwport, addr)
-        if not status:
-            return [status, result]
-        [status, result] = ipcontrol.up_link(gwport)
-        if not status:
-            return [status, result]
-        [status, result] = ovscontrol.set_port_input_qos(gwport, input_rate_limit)
-        if not status:
-            return [status, result]
-        return ovscontrol.set_port_output_qos(gwport, output_rate_limit)
-
-    @staticmethod
-    def del_gw(bridge, gwport):
-        [status, result] = ovscontrol.del_port_input_qos(gwport)
-        if not status:
-            return [status, result]
-        [status, result] = ovscontrol.del_port_output_qos(gwport)
-        if not status:
-            return [status, result]
-        return ovscontrol.del_port(bridge, gwport)
-
-    @staticmethod
-    def check_gw(bridge, gwport, uid, addr, input_rate_limit, output_rate_limit, network):
-        ovscontrol.add_bridge(bridge)
-        if not netcontrol.gw_exists(bridge, gwport):
-            return netcontrol.setup_gw(bridge, gwport, addr, input_rate_limit, output_rate_limit, network)
-        [status, info] = ipcontrol.link_info(gwport)
-        if not status:
-            return [False, "get gateway info failed"]
-        if ('inet' not in info) or (addr not in info['inet']):
-            ipcontrol.add_addr(gwport, addr)
-        else:
-            info['inet'].remove(addr)
-            for otheraddr in info['inet']:
-                ipcontrol.del_addr(gwport, otheraddr)
-        if info['state'] == 'DOWN':
-            ipcontrol.up_link(gwport)
-        return [True, "check gateway port %s" % gwport]
-
-    @staticmethod
-    def recover_usernet(portname, uid, GatewayHost, isGatewayHost, network):
-        if network != "ovs":
-            return
-        ovscontrol.add_bridge("docklet-br-"+str(uid))
-        if not isGatewayHost:
-            [success, ports] = ovscontrol.list_ports("docklet-br-"+str(uid))
-            if success:
-                for port in ports:
-                    if port.startswith("gre") and (not port == ("gre-"+str(uid)+"-"+GatewayHost) ) :
-                        ovscontrol.del_port("docklet-br-"+str(uid),port)
-            ovscontrol.add_port_gre_withkey("docklet-br-"+str(uid), "gre-"+str(uid)+"-"+GatewayHost, GatewayHost, str(uid))
-        ovscontrol.add_port("docklet-br-"+str(uid), portname)
-
-    @staticmethod
-    def add_container_network(container_name, pid, ip, gateway, network):
-        namesplit = container_name.split('-')
-        username = namesplit[0]
-
-        netcontrol.netns_add_link(pid)
-        logger.info("add link for %s, pid:%s, ip:%s, gateway:%s, network:%s"
-                    % (container_name, pid, ip, gateway, network))
-        if network == "ovs":
-            [status, result] = ipcontrol.netns_add_addr(pid, ip)
-            if not status:
-                return [False, container_name + " " + result]
-            [status, route_result] = netcontrol.netns_add_route(pid, gateway)
-            if not status:
-                return [False, route_result]
-            result = result + route_result
-            return [True, container_name + " " + result]
-        else:
-            [status, result] = netcontrol.add_user_network(username, network)
-            if not status:
-                return [False, container_name + " add user network failed for: " + result]
-            [status, result] = netcontrol.add_cni_network(container_name, pid, ip)
-            if status:
-                if network == "calico":
-                    result = "cali" + result
-            return [status, result]
+class nettool(object):
 
     @staticmethod
     def netns_add_link(pid):
@@ -409,15 +308,6 @@ class netcontrol(object):
         dst = "/var/run/netns/%s" % pid
         os.symlink(src, dst)
         # logger.info("container %s netns with pid %s success" % (lxc_name, pid))
-
-    @staticmethod
-    def netns_add_route(pid, gateway):
-        try:
-            subprocess.run(['ip', 'netns', 'exec', str(pid), 'route', 'add', 'default', 'gw', str(gateway)],
-                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False, check=True)
-            return [True, "netns %s add route success : %s" % (pid, gateway)]
-        except subprocess.CalledProcessError as suberror:
-            return [False, "netns %s add route failed : %s" % (pid, suberror.stdout.decode('utf-8'))]
 
     @staticmethod
     def add_user_network(username, network):
@@ -465,15 +355,6 @@ class netcontrol(object):
             return [False, "add up cni network failed"]
 
     @staticmethod
-    def del_container_network(container_name, pid, network):
-        if network == "ovs":
-            return [True, 'del ovs network']
-        namesplit = container_name.split('-')
-        username = namesplit[0]
-        [status, result] = netcontrol.del_cni_network(container_name, pid)
-        return [status, result]
-
-    @staticmethod
     def del_cni_network(container_name, pid):
         namesplit = container_name.split('-')
         username = namesplit[0]
@@ -497,7 +378,145 @@ class netcontrol(object):
             return [True, 'del user:%s network:%s success' % (username, NetworkName)]
         else:
             os.remove(NetworkConfPath)
-            return [True, 'del user:%s network:%s success' % (username, NetworkName)]
+            return [True, 'del user:%s network:%s success' % (username, NetworkName)]        
+
+
+
+class netcontrol(object):
+    # @staticmethod
+    # def bridge_exists(bridge):
+    #     return ovscontrol.bridge_exist(bridge)
+
+    @staticmethod
+    def del_bridge(bridge):
+        return ovscontrol.del_bridge(bridge)
+
+    # @staticmethod
+    # def new_bridge(bridge):
+    #     return ovscontrol.add_bridge(bridge)
+
+    # @staticmethod
+    # def gre_exists(bridge, remote):
+    #     # port is unique, bridge is not necessary
+    #     return ovscontrol.port_exists('gre-'+str(remote))
+
+    # @staticmethod
+    # def setup_gre(bridge, remote):
+    #     return ovscontrol.add_port_gre(bridge, 'gre-'+str(remote), remote)
+
+    @staticmethod
+    def gw_exists(bridge, gwport):
+        return ovscontrol.port_exists(gwport)
+
+    @staticmethod
+    def setup_gw(bridge, gwport, addr, input_rate_limit, output_rate_limit, network):
+        if network == "ovs":
+            [status, result] = ovscontrol.add_port_internal(bridge, gwport)
+            if not status:
+                return [status, result]
+            [status, result] = ipcontrol.add_addr(gwport, addr)
+            if not status:
+                return [status, result]
+            [status, result] = ipcontrol.up_link(gwport)
+            if not status:
+                return [status, result]
+            [status, result] = ovscontrol.set_port_input_qos(gwport, input_rate_limit)
+            if not status:
+                return [status, result]
+            return ovscontrol.set_port_output_qos(gwport, output_rate_limit)
+        else:
+            return [True, 0]
+
+    @staticmethod
+    def del_gw(bridge, gwport, network):
+        if network == "ovs":
+            [status, result] = ovscontrol.del_port_input_qos(gwport)
+            if not status:
+                return [status, result]
+            [status, result] = ovscontrol.del_port_output_qos(gwport)
+            if not status:
+                return [status, result]
+            return ovscontrol.del_port(bridge, gwport)
+        else:
+            return [True, 0]
+
+    @staticmethod
+    def check_gw(bridge, gwport, uid, addr, input_rate_limit, output_rate_limit, network):
+        if network == "ovs":
+            ovscontrol.add_bridge(bridge)
+            if not netcontrol.gw_exists(bridge, gwport):
+                return netcontrol.setup_gw(bridge, gwport, addr, input_rate_limit, output_rate_limit, network)
+            [status, info] = ipcontrol.link_info(gwport)
+            if not status:
+                return [False, "get gateway info failed"]
+            if ('inet' not in info) or (addr not in info['inet']):
+                ipcontrol.add_addr(gwport, addr)
+            else:
+                info['inet'].remove(addr)
+                for otheraddr in info['inet']:
+                    ipcontrol.del_addr(gwport, otheraddr)
+            if info['state'] == 'DOWN':
+                ipcontrol.up_link(gwport)
+            return [True, "check gateway port %s" % gwport]
+        else:
+            return [True, "check gateway"]
+
+    @staticmethod
+    def recover_usernet(portname, uid, GatewayHost, isGatewayHost, network):
+        if network == "ovs":
+            ovscontrol.add_bridge("docklet-br-"+str(uid))
+            if not isGatewayHost:
+                [success, ports] = ovscontrol.list_ports("docklet-br-"+str(uid))
+                if success:
+                    for port in ports:
+                        if port.startswith("gre") and (not port == ("gre-"+str(uid)+"-"+GatewayHost) ) :
+                            ovscontrol.del_port("docklet-br-"+str(uid),port)
+                ovscontrol.add_port_gre_withkey("docklet-br-"+str(uid), "gre-"+str(uid)+"-"+GatewayHost, GatewayHost, str(uid))
+            ovscontrol.add_port("docklet-br-"+str(uid), portname)
+        else:
+            return
+
+    @staticmethod
+    def add_container_network(container_name, pid, ip, gateway, network):
+        namesplit = container_name.split('-')
+        username = namesplit[0]
+
+        nettool.netns_add_link(pid)
+        logger.info("add link for %s, pid:%s, ip:%s, gateway:%s, network:%s"
+                    % (container_name, pid, ip, gateway, network))
+        if network == "ovs":
+            [status, result] = ipcontrol.netns_add_addr(pid, ip)
+            if not status:
+                return [False, container_name + " " + result]
+            [status, route_result] = ipcontrol.netns_add_route(pid, gateway)
+            if not status:
+                return [False, route_result]
+            result = result + route_result
+            return [True, container_name + " " + result]
+        else:
+            [status, result] = nettool.add_user_network(username, network)
+            if not status:
+                return [False, container_name + " add user network failed for: " + result]
+            [status, result] = nettool.add_cni_network(container_name, pid, ip)
+            if status:
+                if network == "calico":
+                    result = "cali" + result
+            return [status, result]
+
+    @staticmethod
+    def del_container_network(container_name, pid, network):
+        if network == "ovs":
+            return [True, 'del ovs network']
+        namesplit = container_name.split('-')
+        username = namesplit[0]
+        [status, result] = nettool.del_cni_network(container_name, pid)
+        return [status, result]
+
+    @staticmethod
+    def del_user_network(username):
+        return nettool.del_user_network(username)
+
+   
 
 free_ports = [False]*65536
 allocated_ports = {}

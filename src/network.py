@@ -211,7 +211,7 @@ class EnumPool(object):
         [status, result] = self.acquire(int(num))
         if not status:
             return [status, result]
-        return [True, list(map(lambda x:x+"/"+self.info.split('/')[1], result))]
+        return [True, list(map(lambda x:x+"/"+self.inf1o.split('/')[1], result))]
 
     def inrange(self, ip):
         addr = self.info.split('/')[0]
@@ -271,6 +271,34 @@ class UserPool(EnumPool):
         print("net info:"+self.info+",  gateway:"+self.gateway)
         print (str(self.pool))
 
+
+# NetworkPlugin : record Network Plugins using in docklet
+#     name      : the name of network plugin, such as ovs, calico, flannel
+#     version   : the version of network plugin
+# create_time   : record the time when network plugin was added to docklet
+# used_times    : record how many users are using this network plugin
+# used_users    : record the user list who is using this network plugin
+class NetworkPlugin(object):
+    def __init__(self, name, version):
+        self.name = name
+        self.version = version
+        self.create_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.used_times = 0
+        self.used_users = []
+
+    def add(self, username):
+        self.used_times = self.used_times + 1
+        self.used_users.append(username)
+
+    def remove(self, username):
+        self.used_times = self.used_times - 1
+        self.used_users.remove(username)
+
+    def check(self):
+        return self.used_times == 0
+
+
+
 # NetworkMgr : mange docklet network ip address
 #   center : interval pool to allocate and free network block with IP/CIDR
 #   system : enumeration pool to acquire and release system ip address
@@ -294,20 +322,24 @@ class NetworkMgr(object):
             self.system = EnumPool(sysaddr+"/"+str(syscidr))
             self.usrgws = {}
             self.users = {}
+            self.networkplugins = {}
             #self.vlanids = {}
             #self.init_vlanids(4095, 60)
             #self.init_shared_vlanids()
             self.dump_center()
             self.dump_system()
+            self.dump_plugin()
         elif mode == 'recovery':
             logger.info("init network manager from etcd")
             self.center = None
             self.system = None
             self.usrgws = {}
             self.users = {}
+            self.networkplugins = {}
             #self.vlanids = {}
             self.load_center()
             self.load_system()
+            self.load_plugin()
             #self.load_vlanids()
             #self.load_shared_vlanids()
         else:
@@ -366,6 +398,14 @@ class NetworkMgr(object):
 
     def dump_shared_vlanids(self):
         self.etcd.setkey("network/shared_vlanids", json.dumps(self.shared_vlanids))'''
+
+    def dump_plugin(self):
+        self.etcd.setkey("network/plugin", json.dumps(self.networkplugins))
+
+    def load_plugin(self):
+        [status, plugindata] = self.etcd.getkey("networkp/lugin")
+        plugin = json.loads(plugindata)
+        self.networkplugins = plugin
 
     def load_center(self):
         [status, centerdata] = self.etcd.getkey("network/center")
@@ -449,6 +489,26 @@ class NetworkMgr(object):
             self.dump_vlanids()
         return [True, "Release VLAN ID success"]'''
 
+    def get_networkplugin(self):
+        self.load_plugin()
+        return [True, self.networkplugins]
+
+    def add_networkplugin(self, name, version):
+        self.load_plugin()
+        if name in self.networkplugins.keys():
+            return [False, "network plugin %s already in use." % name]
+        self.networkplugins[name] = NetworkPlugin(name, version)
+        self.dump_plugin()
+        return [True, "add network plugin %s success" % name]
+
+    def del_networkplugin(self, name):
+        self.load_plugin()
+        if name not in self.networkplugins.keys():
+            return [False, "network plugin %s does not exist" % name]
+        self.networkplugins.remove(name)
+        self.dump_plugin()
+        return [True, "del network plugin %s success" % name]
+
     def has_usrgw(self, username):
         self.load_usrgw(username)
         return username in self.usrgws.keys()
@@ -477,7 +537,7 @@ class NetworkMgr(object):
         del self.users[username]
         return [True, "set up gateway success"]
 
-    def add_user(self, username, cidr, isshared = False):
+    def add_user(self, username, cidr, network, isshared = False):
         logger.info ("add user %s with cidr=%s" % (username, str(cidr)))
         self.user_locks.acquire()
         if self.has_user(username):
@@ -500,6 +560,9 @@ class NetworkMgr(object):
         #netcontrol.setup_gw('docklet-br', username, self.users[username].get_gateway_cidr(), str(vlanid))
         self.dump_user(username)
         del self.users[username]
+        self.load_plugin()
+        self.networkplugins[network].add(username)
+        self.dump_plugin()
         self.user_locks.release()
         return [True, 'add user success']
 
@@ -508,19 +571,18 @@ class NetworkMgr(object):
             return [False, "user does't have gateway or user doesn't exist."]
         ip = self.usrgws[username]
         logger.info("Delete user %s(%s) gateway on %s" %(username, str(uid), ip))
-        if network == "ovs":
-            if ip == self.masterip:
-                netcontrol.del_gw('docklet-br-'+str(uid), username)
-                netcontrol.del_bridge('docklet-br-'+str(uid))
-            else:
-                worker = nodemgr.ip_to_rpc(ip)
-                worker.del_gw('docklet-br-'+str(uid), username)
-                worker.del_bridge('docklet-br-'+str(uid))
+        if ip == self.masterip:
+            netcontrol.del_gw('docklet-br-'+str(uid), username, network)
+            netcontrol.del_bridge('docklet-br-'+str(uid))
+        else:
+            worker = nodemgr.ip_to_rpc(ip)
+            worker.del_gw('docklet-br-'+str(uid), username, network)
+            # worker.del_bridge('docklet-br-'+str(uid))
         del self.usrgws[username]
         self.etcd.delkey("network/usrgws/"+username)
         return [True, 'delete user\' gateway success']
 
-    def del_user(self, username):
+    def del_user(self, username, network):
         self.user_locks.acquire()
         if not self.has_user(username):
             self.user_locks.release()
@@ -535,6 +597,9 @@ class NetworkMgr(object):
         #netcontrol.del_gw('docklet-br', username)
         self.etcd.deldir("network/users/"+username)
         del self.users[username]
+        self.load_plugin()
+        self.networkplugins[network].remove(username)
+        self.dump_plugin()
         self.user_locks.release()
         return [True, 'delete user success']
 

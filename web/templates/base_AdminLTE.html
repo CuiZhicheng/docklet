@@ -169,6 +169,9 @@
         <li id="nav_Notification">
             <a href='/notification/'><i class="fa fa-envelope"></i> <span class="nav-label">Notifications</span></a>
         </li>
+        <li id="nav_Network_Plugin">
+            <a href='/network_plugin/'><i class="fa fa-envelope"></i> <span class="nav-label">Network Plugin</span></a>
+        </li>
         <li id="settings">
 	    <a href='/settings/'><i class="fa fa-user"></i> <span class="nav-label">Settings</span></a>
         </li>
@@ -265,6 +268,8 @@
     }
     else if(pathname[1] == 'notification')
         $("#nav_Notification").addClass('active');
+    else if(pathname[1] == 'networkplugin')
+        $("#nav_Network_Plugin").addClass('active');
     else if(pathname[1] == 'admin')
         $("#admin").addClass('active');
     else if(pathname[1] == 'settings')

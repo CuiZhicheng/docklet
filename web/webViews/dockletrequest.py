@@ -38,6 +38,7 @@ class dockletRequest():
                 'user',
                 'beans',
                 'notification',
+                'networkplugin',
                 'cloud',
                 'settings'
                 }

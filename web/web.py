@@ -25,6 +25,7 @@ from webViews.dashboard import dashboardView
 from webViews.user.userlist import userlistView, useraddView, usermodifyView, userdataView, userqueryView
 from webViews.notification.notification import CreateNotificationView, NotificationView, QuerySelfNotificationsView, \
     QueryNotificationView, ModifyNotificationView, DeleteNotificationView
+from webViews.networkplugin.networkplugin import NetworkPluginView, CreateNetworkPluginView, DeleteNetworkPluginView
 from webViews.user.userinfo import userinfoView
 from webViews.user.userActivate import userActivateView
 from webViews.syslogs import logsView
@@ -560,6 +561,20 @@ def query_self_notifications():
 def query_notification_detail(notify_id):
     return QueryNotificationView.get_by_id(notify_id)
 
+@app.route("/networkplugin/list/", methods=['GET'])
+@administration_required
+def networkplugin_list():
+    return NetworkPluginView.as_view()
+
+@app.route("/networkplugin/create/", methods=['POST'])
+@administration_required
+def networkplugin_list():
+    return CreateNetworkPluginView.as_view()
+
+@app.route("/networkplugin/delete/", methods=['POST'])
+@administration_required
+def delete_notification():
+    return DeleteNetworkPluginView.as_view()
 
 @app.route("/system/modify/", methods=['POST'])
 @administration_required

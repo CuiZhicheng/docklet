@@ -328,14 +328,15 @@ class VclusterMgr(object):
         uid = json.loads(user_info)["data"]["id"]
         setting["network"] = clusterinfo['network']
         hostvethname = ""
-        # [success, message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, json.dumps(setting), clustername, clusterid, str(cid), hostname, ip, gateway, image_json)
+        # [success, message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, \
+        # json.dumps(setting), clustername, clusterid, str(cid), hostname, ip, gateway, image_json)
         [success, message] = oneworker.create_container(lxc_name, proxy_public_ip, username, uid, json.dumps(setting), clustername, clusterid, str(cid), hostname, gateway, image_json)
         if success is False:
             # self.networkmgr.release_userips(username, ip)
             logger.info("create container failed, so scale out failed")
             return [False, message]
         if clusterinfo['status'] == "running":
-            self.networkmgr.check_usergre(username, uid, workerip, self.nodemgr, self.distributedgw=='True')
+            self.networkmgr.check_usergre(username, uid, workerip, self.nodemgr, self.distributedgw == 'True')
             oneworker.start_container(lxc_name)
 
             logger.info("acquire ip for container %s" % lxc_name)  
@@ -473,7 +474,6 @@ class VclusterMgr(object):
             # worker.del_container_network(container['containername'],
             #                              worker.getPidByName(container['containername']), info['network'])
             # worker.stop_container(container['containername'])
-            worker.del_user_network(username)
             worker.delete_container(container['containername'])
             ips.append(container['ip'])
         logger.info("delete vcluster and release vcluster ips")
@@ -487,6 +487,7 @@ class VclusterMgr(object):
         [status, clusters] = self.list_clusters(username)
         if len(clusters) == 0:
             self.networkmgr.del_user(username)
+            worker.del_user_network(username)
             self.networkmgr.del_usrgwbr(username, uid, self.nodemgr, info['network'])
             #logger.info("vlanid release triggered")
         return [True, "cluster delete"]
