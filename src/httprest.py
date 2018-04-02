@@ -669,24 +669,38 @@ def list_networkplugin(user, beans, form):
 @app.route("/networkplugin/crate/", methods=['POST'])
 @login_required
 def add_networkplugin(user, beans, form):
-    # global G_vclustermgr
-    # global G_ulockmgr
-    # global G_imagemgr
-    # G_ulockmgr.acquire(user)
-    # clustername = form.get("name", None)
-    # if clustername == None:
-    #     return json.dumps({'success':'false', 'message':'networkplugin name is null'})
-    # clustername = clustername + "-test"
+    global G_vclustermgr
+    global G_ulockmgr
+    global G_imagemgr
+    global G_networkmgr
+    G_ulockmgr.acquire(user)
+    name = form.get("name", None)
+    if name == None:
+        return json.dumps({'success':'false', 'message':'networkplugin name is null'})
+    # clustername = name + "-test"
     # images = G_imagemgr.list_images(user)
     # test_image = images[0]
-    
-
-    pass
+    version = form.get("version", None)
+    if version == None:
+        return json.dumps({'success':'false', 'message':'networkplugin version is null'})
+    [status, message] = G_networkmgr.add_networkplugin(name, version)
+    if status is True:
+        return json.dumps({'success':'true', 'action':'create networkplugin', 'message': message})
+    else:
+        return json.dumps({'success':'false', 'action':'create networkplugin','message': message})
 
 @app.route("/networkplugin/delete/", methods=['POST'])
 @login_required
 def del_networkplugin(user, beans, form):
-    pass
+    global G_networkmgr
+    name = form.get('networkpluginName', None)
+    if name == None:
+        return json.dumps({'success':'false', 'message':'networkplugin name is null'})
+    [status, message] = G_networkmgr.del_networkplugin(name)
+    if status is True:
+        return json.dumps({'success':'true', 'action':'delete networkplugin', 'message': message})
+    else:
+        return json.dumps({'success':'false', 'action':'delete networkplugin','message': message})
 
 # @app.route("/inside/cluster/scaleout/", methods=['POST'])
 # @inside_ip_required
