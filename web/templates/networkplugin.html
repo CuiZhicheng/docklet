@@ -60,7 +60,7 @@
                                 <td>{{ networkplugin['create_time'] }}</td>
                                 <td>{{ networkplugin['used_times'] }}</td>
                                 <td>
-                                    <a class="btn btn-xs btn-success" data-toggle="modal" data-target="#detailModal_{{ networkplugin['name'] }}"><i class="fa fa-plus"></i> details</a>
+                                    <a class="btn btn-xs btn-info" data-toggle="modal" data-target="#detailModal_{{ networkplugin['name'] }}"><i class="fa fa-plus"></i> details</a>
                                 </td>
                                 <td>
                                     <a class="btn btn-xs btn-danger" data-toggle="modal" data-target="#deleteModal_{{ networkplugin['name'] }}"><i class="fa fa-times"></i> delete</a>
@@ -79,14 +79,14 @@
                                                 <small class="font-bold">Show the users of the Network Plugin</small>
                                             </div>
                                             <div class="modal-body">
-                                                <table id="networkpluginuserTable" class="table table-striped table-bordered">
+                                                <table class="table table-striped table-bordered">
                                                     <thead>
                                                         <tr>
                                                             <td>Users</td>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                         {% for user in networkplugin['users'] %}
+                                                         {% for user in networkplugin['used_users'] %}
                                                          <tr>
                                                             <td>{{ user }}</td>
                                                          </tr>
