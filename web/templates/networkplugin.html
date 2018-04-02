@@ -103,12 +103,12 @@
                                             </div>
                                             <div class="modal-body">
                                                 <strong class="text-center">Are you sure to do this?</strong>
-                                                <form id="deleteNetworkPluginForm_{{ networkplugin['name'] }}" style="display: none" action="/networkplugin/delete/" method="post">
+                                                <form id="deleteNetworkPluginForm" style="display: none" action="/networkplugin/delete/" method="post">
                                                     <input type="text" class="form-control" name="networkpluginName" style="display: none" value="{{ networkplugin['name'] }}">
                                                 </form>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-danger" onClick="sendDeleteNetworkPlugin({{ networkplugin['name'] }});">Delete</button>
+                                                <button type="button" class="btn btn-danger" onClick="javascript:sendDeleteNetworkPlugin();">Delete</button>
                                                 <button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button>
                                             </div>
                                         </div>
@@ -168,8 +168,8 @@
         function sendAddNetworkPlugin(){
             document.getElementById("addNetworkPluginForm").submit();
         }
-        function sendDeleteNetworkPlugin(networkpluginName) {
-            $('#deleteNetworkPluginForm_'+networkpluginName).submit();
+        function sendDeleteNetworkPlugin() {
+            document.getElementById("deleteNetworkPluginForm").submit();
         }
     </script>
 {% endblock %}
