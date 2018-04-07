@@ -320,7 +320,7 @@ class NetworkMgr(object):
             self.system = EnumPool(sysaddr+"/"+str(syscidr))
             self.usrgws = {}
             self.users = {}
-            self.networkplugins = {"ovs": {"name":"ovs", "version":"2.5.2", "create_time":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "used_times": 0, "used_users": ["root"]}}
+            self.networkplugins = {"ovs": {"name":"ovs", "version":"2.5.2", "create_time":datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "used_times": 1, "used_users": ["root"]}}
             #self.vlanids = {}
             #self.init_vlanids(4095, 60)
             #self.init_shared_vlanids()
@@ -518,11 +518,11 @@ class NetworkMgr(object):
         if name not in self.networkplugins.keys():
             return [False, "network plugin %s does not exist" % name]
         if IsAdd:
-            self.networkplugins[name][used_times] += 1
-            self.networkplugins[name][used_users].append(user)
+            self.networkplugins[name]["used_times"] += 1
+            self.networkplugins[name]["used_users"].append(user)
         else:
-            self.networkplugins[name][used_times] -= 1
-            self.networkplugins[name][used_users].remove(user)
+            self.networkplugins[name]["used_times"] -= 1
+            self.networkplugins[name]["used_users"].remove(user)
         self.dump_plugin()
         return [True, "update network plugin usage success"]
 
