@@ -113,9 +113,9 @@ class VclusterMgr(object):
         groupname = json.loads(user_info)["data"]["group"]
         groupquota = json.loads(user_info)["data"]["groupinfo"]
         uid = json.loads(user_info)["data"]["id"]
-        # network = setting["network"]
-        network = "calico"
-        setting["network"] = "calico"
+        network = setting["networkplugin"]
+        # network = "calico"
+        setting["network"] = network
         if (len(workers) == 0):
             logger.warning ("no workers to start containers, start cluster failed")
             return [False, "no workers are running"]

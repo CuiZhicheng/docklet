@@ -157,6 +157,7 @@
 				 <th>Node ID</th>
 				 <th>Node Name</th>
                                  <th>IP Address</th>
+                                 <th>Host</th>
                                  <th>Status</th>
 				 <th>Image</th>
 				 <th>Save</th>
@@ -169,6 +170,7 @@
                                  <td>{{ loop.index }}</td>
                                  <td>{{ container['containername'] }}</td>
                                  <td>{{ container['ip'] }}</td>
+                                 <td>{{ container['host'] }}</td>
 
                                  {% if  clusterinfo['status']  == 'stopped' %}
 								 <td><div class="text-warning"><i class="fa fa-stop"></i> Stopped</div></td>

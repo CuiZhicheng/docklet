@@ -111,7 +111,7 @@
                                     </a>
                                 </h4>
                             </div>
-			    <div id="collapseOne" class="panel-collapse collapse">
+			    	<div id="collapseOne" class="panel-collapse collapse">
                                 <div class="panel-body">
 				                    <div class="form-group">
                                         <label class="col-sm-2 control-label">CPU</label>
@@ -128,6 +128,16 @@
                                         <div class="col-sm-3"><input type="number" class="form-control" name="diskSetting" id="diskSetting" value= {{defaultsetting['disk']}}  /> {{usage['disk']}} MB/{{quota['disk']}}MB
                                         </div>
                                     </div>
+                                    <div class="form-group">
+                                    	<label class="col-sm-2 control-label">NETWORK PLUGIN</label>
+                                    	<div class="col-sm-3">
+                                    		<select class="form-control" name="networkplugin" value={{ networkplugin }} />
+                                        		{% for networkplugin in networkplugins %}
+                                        		<option>{{ networkplugin['name'] }}</option>
+                                        		{% endfor %}
+                                    		</select>
+                                    	</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -141,11 +151,10 @@
 					    </div>
 				    </div>
 				    </div>
-                            </form>
-                        </div>
-                    </div>
-                    </div>
-
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 </div>
 {% endblock %}

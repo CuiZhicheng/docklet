@@ -124,8 +124,8 @@
                                 <div class="form-group">
                                     <label>Default Group</label>
                                     <select class="form-control" name="defaultgroup" value={{ defaultgroup }} />
-                                        {% for group in groups %}
-                                        <option>{{ group['name'] }}</option>
+                                        {% for networkplugin in networkplugins %}
+                                        <option>{{ networkplugin['name'] }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
