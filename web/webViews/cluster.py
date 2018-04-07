@@ -50,7 +50,7 @@ class addClusterView(normalView):
                 'networkplugin': defaultnetworkplugin
                 }
         if (result):
-            return self.render(self.template_path, user = session['username'],masterips = masterips, images = images, quota = quota, usage = usage, networkplugin = networkplugins, defaultsetting = defaultsetting, masterdesc=desc)
+            return self.render(self.template_path, user = session['username'],masterips = masterips, images = images, quota = quota, usage = usage, networkplugins = networkplugins, defaultsetting = defaultsetting, masterdesc=desc)
         else:
             self.error()
 
