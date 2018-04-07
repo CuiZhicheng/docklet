@@ -493,6 +493,7 @@ class NetworkMgr(object):
         result = []
         for plugin in values:
             result.append(plugin)
+        logger.debug("get networkplugins %s" % result)
         return [True, result]
 
     def add_networkplugin(self, name, version):
