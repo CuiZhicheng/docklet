@@ -132,7 +132,7 @@ def create_cluster(user, beans, form):
     setting = {
             'cpu': form.get('cpuSetting'),
             'memory': form.get('memorySetting'),
-            'disk': form.get('diskSetting')
+            'disk': form.get('diskSetting'),
             'networkplugin': form.get('networkplugin')
             }
     res = post_to_user("/user/usageInc/", {'token':form.get('token'), 'setting':json.dumps(setting)})
