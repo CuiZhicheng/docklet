@@ -700,7 +700,7 @@ def add_networkplugin(user, beans, form):
 
     # [status, message] = G_vclustermgr.create_cluster(clustername, root, )
     G_ulockmgr.acquire(user)
-    [status, message] = G_networkmgr.add_networkplugin(name, version)
+    [status, message] = G_vclustermgr.test_and_add_networkplugin(name, version)
     G_ulockmgr.release(user)
     if status is True:
         return json.dumps({'success':'true', 'action':'create networkplugin', 'message': message})

@@ -492,6 +492,41 @@ class VclusterMgr(object):
             #logger.info("vlanid release triggered")
         return [True, "cluster delete"]
 
+    def test_and_add_networkplugin(self, name, version):
+        clustername = "root-test" 
+        username = "root"
+        image = {
+            'name': 'base', 
+            'owner': 'base', 
+            'type': 'base'
+        }
+        setting = {
+            'cpu': default['cpu'],
+            'memory': default['memory'],
+            'disk': default['disk'],
+            'networkplugin': name
+        }
+        user_info = {}
+        user_info['data'] = {
+            'id': 1,
+            'group': 'root',
+            'groupinfo': {
+                'disk': '20000', 
+                'input_rate_limit': '10000', 
+                'image': '10', 
+                'idletime': '24', 
+                'portmapping': '8', 
+                'memory': '20000', 
+                'output_rate_limit': '10000', 
+                'vnode': '8', 
+                'cpu': '4', 
+                'data': '1000'
+            }, 
+            'username': 'root'
+        }
+        [status, result] = self.create_container(clustername, username, image, user_info, setting)
+        pass
+
     def addproxy(self,username,clustername,ip,port):
         [status, clusterinfo] = self.get_clusterinfo(clustername, username)
         if 'proxy_ip' in clusterinfo:
