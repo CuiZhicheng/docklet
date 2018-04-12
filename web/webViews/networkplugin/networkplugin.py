@@ -24,7 +24,7 @@ class CreateNetworkPluginView(normalView):
     @classmethod
     def post(self):
         masterips = dockletRequest.post_to_all()
-         result = dockletRequest.post('/networkplugin/create/', request.form, masterips[0].split("@")[0])
+        result = dockletRequest.post('/networkplugin/create/', request.form, masterips[0].split("@")[0])
         if(result.get('success', None) == "true"):
            return redirect("/networkplugin/")
         else:
