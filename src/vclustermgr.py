@@ -505,7 +505,7 @@ class VclusterMgr(object):
         settingfile.close()
         setting = {
             'cpu': defaultsetting['cpu'],
-            'memory': defaultsettingdefaultsetting['memory'],
+            'memory': defaultsetting['memory'],
             'disk': defaultsetting['disk'],
             'networkplugin': name
         }
