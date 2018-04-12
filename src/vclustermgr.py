@@ -500,31 +500,59 @@ class VclusterMgr(object):
             'owner': 'base', 
             'type': 'base'
         }
+        settingfile = open(self.fspath+"/global/sys/lxc.default" , 'r')
+        defaultsetting = json.loads(settingfile.read())
+        settingfile.close()
         setting = {
-            'cpu': default['cpu'],
-            'memory': default['memory'],
-            'disk': default['disk'],
+            'cpu': defaultsetting['cpu'],
+            'memory': defaultsettingdefaultsetting['memory'],
+            'disk': defaultsetting['disk'],
             'networkplugin': name
         }
         user_info = {}
+
+        groupinfo = {
+            'disk': '2000', 
+            'input_rate_limit': '10000', 
+            'image': '10', 
+            'idletime': '24', 
+            'portmapping': '8', 
+            'memory': '2000', 
+            'output_rate_limit': '10000', 
+            'vnode': '8', 
+            'cpu': '4', 
+            'data': '1000'
+        }
+        groupfile = open(self.fspath+"/global/sys/quota",'r')
+        groups = json.loads(groupfile.read())
+        groupfile.close()
+        for group inf groups:
+            if group['name'] == username:
+                groupinfo = group['quotas']
         user_info['data'] = {
             'id': 1,
-            'group': 'root',
-            'groupinfo': {
-                'disk': '20000', 
-                'input_rate_limit': '10000', 
-                'image': '10', 
-                'idletime': '24', 
-                'portmapping': '8', 
-                'memory': '20000', 
-                'output_rate_limit': '10000', 
-                'vnode': '8', 
-                'cpu': '4', 
-                'data': '1000'
-            }, 
-            'username': 'root'
-        }
+            'group': username,
+            'groupinfo': groupinfo, 
+            'username': username
+        }   
         [status, result] = self.create_container(clustername, username, image, user_info, setting)
+        if not status:
+            return [False, "create cluster failed! %s" % result]
+        [status, result] = self.start_cluster(clustername, username, user_info)
+        if not status:
+            return [False, "start cluster failed! %s" % result]
+        [status, result] = self.scale_out_cluster(clustername, username, image, user_info, setting)
+        if not status:
+            return [False, "scale out cluster failed! %s" % result
+        [status, result] = self.stop_cluster(clustername, username)
+        if not status:
+            return [False, "stop cluster failed! %s" % result]
+        [status, result] = self.delete_cluster(clustername, username, user_info)
+        if not status:
+            return [False, "delete cluster failed! %s" % result]
+        [status, result] = self.networkmgr.add_networkplugin(name, version)
+        if not status:
+            return [False, "add network plugin failed! %s" % result]
         pass
 
     def addproxy(self,username,clustername,ip,port):
