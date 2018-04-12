@@ -543,7 +543,7 @@ class VclusterMgr(object):
             return [False, "start cluster failed! %s" % result]
         [status, result] = self.scale_out_cluster(clustername, username, image, user_info, setting)
         if not status:
-            return [False, "scale out cluster failed! %s" % result
+            return [False, "scale out cluster failed! %s" % result]
         [status, result] = self.stop_cluster(clustername, username)
         if not status:
             return [False, "stop cluster failed! %s" % result]
