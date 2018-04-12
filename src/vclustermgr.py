@@ -474,7 +474,8 @@ class VclusterMgr(object):
             #                              worker.getPidByName(container['containername']), info['network'])
             # worker.stop_container(container['containername'])
             worker.delete_container(container['containername'])
-            ips.append(container['ip'])
+            if 'ip' in container:
+                ips.append(container['ip'])
         logger.info("delete vcluster and release vcluster ips")
         self.networkmgr.release_userips(username, ips)
         self.networkmgr.printpools()
