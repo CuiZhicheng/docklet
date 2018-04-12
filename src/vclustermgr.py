@@ -534,20 +534,20 @@ class VclusterMgr(object):
             'groupinfo': groupinfo, 
             'username': username
         }   
-        # user_info = json.dumps(user_info)
-        [status, result] = self.create_cluster(clustername, username, image, json.dumps(user_info), setting)
+        user_info = json.dumps(user_info)
+        [status, result] = self.create_cluster(clustername, username, image, user_info, setting)
         if not status:
             return [False, "create cluster failed! %s" % result]
         [status, result] = self.start_cluster(clustername, username, user_info)
         if not status:
             return [False, "start cluster failed! %s" % result]
-        [status, result] = self.scale_out_cluster(clustername, username, image, json.dumps(user_info), setting)
+        [status, result] = self.scale_out_cluster(clustername, username, image, user_info, setting)
         if not status:
             return [False, "scale out cluster failed! %s" % result]
         [status, result] = self.stop_cluster(clustername, username)
         if not status:
             return [False, "stop cluster failed! %s" % result]
-        [status, result] = self.delete_cluster(clustername, username, json.dumps(user_info))
+        [status, result] = self.delete_cluster(clustername, username, user_info)
         if not status:
             return [False, "delete cluster failed! %s" % result]
         [status, result] = self.networkmgr.add_networkplugin(name, version)
