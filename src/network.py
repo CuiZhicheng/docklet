@@ -506,6 +506,7 @@ class NetworkMgr(object):
         return [True, "add network plugin %s success" % name]
 
     def del_networkplugin(self, name):
+        logger.info("del network plugin:%s" % name)
         self.load_plugin()
         if name not in self.networkplugins.keys():
             return [False, "network plugin %s does not exist" % name]
