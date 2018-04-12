@@ -535,6 +535,7 @@ class VclusterMgr(object):
             'groupinfo': groupinfo, 
             'username': username
         }   
+        user_info = json.dumps(user_info)
         [status, result] = self.create_cluster(clustername, username, image, user_info, setting)
         if not status:
             return [False, "create cluster failed! %s" % result]
