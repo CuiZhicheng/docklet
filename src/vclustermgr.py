@@ -526,7 +526,7 @@ class VclusterMgr(object):
         groupfile = open(self.fspath+"/global/sys/quota",'r')
         groups = json.loads(groupfile.read())
         groupfile.close()
-        for group inf groups:
+        for group in groups:
             if group['name'] == username:
                 groupinfo = group['quotas']
         user_info['data'] = {
