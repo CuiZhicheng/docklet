@@ -535,7 +535,7 @@ class VclusterMgr(object):
             'groupinfo': groupinfo, 
             'username': username
         }   
-        [status, result] = self.create_container(clustername, username, image, user_info, setting)
+        [status, result] = self.create_cluster(clustername, username, image, user_info, setting)
         if not status:
             return [False, "create cluster failed! %s" % result]
         [status, result] = self.start_cluster(clustername, username, user_info)
