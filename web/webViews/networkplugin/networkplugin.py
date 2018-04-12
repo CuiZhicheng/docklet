@@ -19,29 +19,26 @@ class NetworkPluginView(normalView):
 
 class CreateNetworkPluginView(normalView):
     template_path = 'create_networkplugin.html'
+    error_path = "error.html"
 
     @classmethod
-    def post(cls):
+    def post(self):
         masterips = dockletRequest.post_to_all()
-        dockletRequest.post('/networkplugin/create/', request.form, masterips[0].split("@")[0])
-        # return redirect('/admin/')
-        return redirect('/networkplugin/')
-
-# class QueryNotificationView(normalView):
-#     template_path = 'notification_info.html'
-
-#     @classmethod
-#     def get_by_id(cls, notify_id):
-#         notifies = []
-#         if notify_id == 'all':
-#             notifies.extend(dockletRequest.post('/notification/query/all/')['data'])
-#         else:
-#             notifies.append(dockletRequest.post('/notification/query/', data={'notify_id': notify_id})['data'])
-#         return cls.render(cls.template_path, notifies=notifies)
+         result = dockletRequest.post('/networkplugin/create/', request.form, masterips[0].split("@")[0])
+        if(result.get('success', None) == "true"):
+           return redirect("/networkplugin/")
+        else:
+            return self.render(self.error_path, message = result.get('message'))
 
 class DeleteNetworkPluginView(normalView):
+    error_path = "error.html"
+
     @classmethod
-    def post(cls):
+    def post(self):
         masterips = dockletRequest.post_to_all()
-        dockletRequest.post('/networkplugin/delete/', request.form, masterips[0].split("@")[0])
-        return redirect('/networkplugin/')
+        result = dockletRequest.post('/networkplugin/delete/', request.form, masterips[0].split("@")[0])
+        if(result.get('success', None) == "true"):
+           return redirect("/networkplugin/")
+            #return self.render(self.template_path, user = session['username'])
+        else:
+            return self.render(self.error_path, message = result.get('message'))

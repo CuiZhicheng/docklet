@@ -677,12 +677,28 @@ def add_networkplugin(user, beans, form):
     name = form.get("name", None)
     if name == None:
         return json.dumps({'success':'false', 'message':'networkplugin name is null'})
-    # clustername = name + "-test"
-    # images = G_imagemgr.list_images(user)
-    # test_image = images[0]
+
     version = form.get("version", None)
     if version == None:
         return json.dumps({'success':'false', 'message':'networkplugin version is null'})
+
+    # clustername = name + "-test"
+    # result = json.dumps(G_usermgr.usageQuery(cur_user = root))
+    # logger.info("usageQuery:%s" % result)
+    # image = {
+    #     'name': 'base', 
+    #     'owner': 'base', 
+    #     'type': 'base'
+    # }
+    # default = result['default']
+    # setting = {
+    #     'cpu': default['cpu'],
+    #     'memory': default['memory'],
+    #     'disk': default['disk'],
+    #     'networkplugin': name
+    # }
+
+    # [status, message] = G_vclustermgr.create_cluster(clustername, root, )
     G_ulockmgr.acquire(user)
     [status, message] = G_networkmgr.add_networkplugin(name, version)
     G_ulockmgr.release(user)

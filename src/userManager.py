@@ -529,7 +529,7 @@ class userManager:
         settingfile = open(fspath+"/global/sys/lxc.default" , 'r')
         defaultsetting = json.loads(settingfile.read())
         settingfile.close()
-
+        logger.info("uasgeQuery, quota:%s, usage:%s, default:%s" % (groupinfo, usageinfo, defaultsetting))
         return {'success': 'true', 'quota' : groupinfo, 'usage' : usageinfo, 'default': defaultsetting }
 
     @token_required

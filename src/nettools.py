@@ -477,26 +477,31 @@ class netcontrol(object):
             return
 
     @staticmethod
-    def add_container_network(container_name, pid, ip, gateway, network):
+    def add_container_network(container_name, pid, ip, setting, network):
         namesplit = container_name.split('-')
         username = namesplit[0]
 
+        # link container network namespace to /var/run/netns/{pid}
         nettool.netns_add_link(pid)
-        logger.info("add link for %s, pid:%s, ip:%s, gateway:%s, network:%s"
-                    % (container_name, pid, ip, gateway, network))
+        logger.info("add link for %s, pid:%s, ip:%s, setting:%s, network:%s"
+                    % (container_name, pid, ip, setting, network))
         if network == "ovs":
             [status, result] = ipcontrol.netns_add_addr(pid, ip)
             if not status:
                 return [False, container_name + " " + result]
-            [status, route_result] = ipcontrol.netns_add_route(pid, gateway)
+            [status, route_result] = ipcontrol.netns_add_route(pid, setting)
             if not status:
                 return [False, route_result]
             result = result + route_result
+            result = namesplit[1] + "-" + namesplit[2]
             return [True, container_name + " " + result]
         else:
-            [status, result] = nettool.add_user_network(username, network)
+            # check or create user network config file
+            [status, result] = nettool.add_user_network(username, setting, network)
             if not status:
                 return [False, container_name + " add user network failed for: " + result]
+
+            # attach container to user network
             [status, result] = nettool.add_cni_network(container_name, pid, ip)
             if status:
                 if network == "calico":

@@ -509,6 +509,8 @@ class NetworkMgr(object):
         self.load_plugin()
         if name not in self.networkplugins.keys():
             return [False, "network plugin %s does not exist" % name]
+        if self.networkplugins[name]["used_times"] != 0:
+            return [False, "there are users still using this network plugin: %s" % self.networkplugins[name]["used_users"]]
         del self.networkplugins[name]
         self.dump_plugin()
         return [True, "del network plugin %s success" % name]
