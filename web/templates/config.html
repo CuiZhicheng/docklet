@@ -169,7 +169,7 @@
                              <tr>
                                  <td>{{ loop.index }}</td>
                                  <td>{{ container['containername'] }}</td>
-                                 {% if container.__contains('ip') %}
+                                 {% if 'ip' in container %}
                                   <td>{{ container['ip'] }}</td>
                                  {% else %}
                                   <td></td>
