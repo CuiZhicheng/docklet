@@ -243,8 +243,7 @@ class VclusterMgr(object):
             [status, pid] = worker.getPidByName(container['containername'])
 
             logger.info("update user %s network" % username)
-            [status, result] = worker.add_container_network(container['containername'], pid, ip, gateway,
-                                                            network)
+            [status, result] = worker.add_container_network(container['containername'], pid, ip, gateway, network)
             if not status:
                 logger.info("add container %s network failed: %s" % (container['containername'], result))
                 return [False, result]
@@ -542,13 +541,13 @@ class VclusterMgr(object):
         [status, result] = self.start_cluster(clustername, username, user_info)
         if not status:
             return [False, "start cluster failed! %s" % result]
-        [status, result] = self.scale_out_cluster(clustername, username, image, user_info, setting)
+        [status, result] = self.scale_out_cluster(clustername, username, image, json.dumps(user_info), setting)
         if not status:
             return [False, "scale out cluster failed! %s" % result]
         [status, result] = self.stop_cluster(clustername, username)
         if not status:
             return [False, "stop cluster failed! %s" % result]
-        [status, result] = self.delete_cluster(clustername, username, user_info)
+        [status, result] = self.delete_cluster(clustername, username, json.dumps(user_info))
         if not status:
             return [False, "delete cluster failed! %s" % result]
         [status, result] = self.networkmgr.add_networkplugin(name, version)
