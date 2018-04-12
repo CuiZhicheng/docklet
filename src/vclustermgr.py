@@ -553,7 +553,7 @@ class VclusterMgr(object):
         [status, result] = self.networkmgr.add_networkplugin(name, version)
         if not status:
             return [False, "add network plugin failed! %s" % result]
-        pass
+        return [True, "add network plugin success"]
 
     def addproxy(self,username,clustername,ip,port):
         [status, clusterinfo] = self.get_clusterinfo(clustername, username)
