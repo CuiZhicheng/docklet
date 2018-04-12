@@ -310,7 +310,7 @@ class nettool(object):
         # logger.info("container %s netns with pid %s success" % (lxc_name, pid))
 
     @staticmethod
-    def add_user_network(username, network):
+    def add_user_network(username, setting, network):
         NetworkName = username
         NetworkConfPath = "/etc/cni/net.d/%s.conf" % NetworkName
         etcd = "http://" + env.getenv("ETCD")
