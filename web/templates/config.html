@@ -169,7 +169,10 @@
                              <tr>
                                  <td>{{ loop.index }}</td>
                                  <td>{{ container['containername'] }}</td>
-                                 <td>{{ container['ip'] }}</td>
+                                 {% if container.has_key('ip') %}
+                                  <td>{{ container['ip'] }}</td>
+                                 {% else %}
+                                  <td></td>
                                  <td>{{ container['host'] }}</td>
 
                                  {% if  clusterinfo['status']  == 'stopped' %}
