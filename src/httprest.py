@@ -143,11 +143,15 @@ def create_cluster(user, beans, form):
         return json.dumps({'success':'false', 'action':'create cluster', 'message':result})
     [status, result] = G_vclustermgr.create_cluster(clustername, user, image, user_info, setting)
     G_ulockmgr.release(user)
-    if status:
-        return json.dumps({'success':'true', 'action':'create cluster', 'message':result})
-    else:
+    if not status:
         post_to_user("/user/usageRecover/", {'token':form.get('token'), 'setting':json.dumps(setting)})
-        return json.dumps({'success':'false', 'action':'create cluster', 'message':result})
+        return json.dumps({'success':'false', 'action':'create and start cluster', 'message':result})
+    
+    [status, result] = G_vclustermgr.start_cluster(clustername, user, user_info)
+    if status:
+        return json.dumps({'success':'true', 'action':'create and start cluster', 'message':result})
+    else:
+        return json.dumps({'success':'false', 'action':'create and start cluster', 'message':result})       
 
 @app.route("/cluster/scaleout/", methods=['POST'])
 @login_required
@@ -218,6 +222,7 @@ def start_cluster(user, beans, form):
         return json.dumps({'success':'false', 'message':'clustername is null'})
     G_ulockmgr.acquire(user)
     user_info = post_to_user("/user/selfQuery/", {'token':form.get("token")})
+    user_info = json.dumps(user_info)
     logger.info ("handle request : start cluster %s" % clustername)
     [status, result] = G_vclustermgr.start_cluster(clustername, user, user_info)
     G_ulockmgr.release(user)

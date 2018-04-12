@@ -193,9 +193,9 @@ class VclusterMgr(object):
         return [True, info]
 
     def start_cluster(self, clustername, username, user_info):
-        uid = user_info['data']['id']
-        input_rate_limit = user_info['data']['groupinfo']['input_rate_limit']
-        output_rate_limit = user_info['data']['groupinfo']['output_rate_limit']
+        uid = json.loads(user_info)['data']['id']
+        input_rate_limit = json.loads(user_info)['data']['groupinfo']['input_rate_limit']
+        output_rate_limit = json.loads(user_info)['data']['groupinfo']['output_rate_limit']
         [status, info] = self.get_clusterinfo(clustername, username)
         if not status:
             return [False, "cluster not found"]
